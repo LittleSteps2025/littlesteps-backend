@@ -51,14 +51,20 @@ export const checkEmail = async (req, res) => {
     const { email } = req.body;
     const user = await checkEmailExists(email);
 
-    if (!user || !user.email) {
-      console.log(`Email not registered: ${email}`);
-      return handleResponse(res, 404, 'Email not registered');
+    if (!user) {
+      console.log(`Email not found in database: ${email}`);
+      return handleResponse(res, 404, 'Email not found. Please contact admin to register your email.', { exists: false });
     }
 
-    handleResponse(res, 200, 'Email is registered');
+    // Email exists in database
+    console.log(`Email found in database: ${email}`);
+    handleResponse(res, 200, 'Email found. Please enter your verification token.', { 
+      exists: true,
+      verified: user.verified 
+    });
 
   } catch (error) {
+    console.error('Check email error:', error);
     handleResponse(res, 500, 'Server error', error.message);
   }
 };
@@ -66,19 +72,36 @@ export const checkEmail = async (req, res) => {
 export const verifyToken = async (req, res) => {
   console.log('Verifying token:', req.body);
   try {
-    const { email, token } = req.body;
+    const { email, token, password } = req.body;
+    
+    // First verify the token matches the email
     const verification = await getVerificationToken(email, token);
     console.log('Verification result:', verification);
     
-    if (verification === false) {
+    if (verification === true) {
+      console.log(`Token verified successfully for email: ${email}`);
+      
+      // If password is provided, hash it and update the user
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await updateUserService(email, {
+          password: hashedPassword,
+          verified: true
+        });
+        console.log(`Password updated and user verified for email: ${email}`);
+        return handleResponse(res, 200, 'Email verified and password set successfully');
+      } else {
+        // Just mark as verified without password update
+        await markEmailAsVerified(email);
+        return handleResponse(res, 200, 'Email verified successfully');
+      }
+    } else {
       console.log(`Invalid or expired token for email: ${email}`);
       return handleResponse(res, 400, 'Invalid or expired token');
     }
 
-    await markEmailAsVerified(email);
-    handleResponse(res, 200, 'Email verified successfully');
-
   } catch (error) {
+    console.error('Verify token error:', error);
     handleResponse(res, 500, 'Server error', error.message);
   }
 };
