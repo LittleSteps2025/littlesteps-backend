@@ -1,72 +1,177 @@
-import { createUserService, deleteUserService, getAllUsersService, getUserByIdService, updateUserService } from "../models/userModel.js";
+import {
+  checkEmailExists,
+  generateVerificationToken,
+  saveVerificationToken,
+  getVerificationToken,
+  markEmailAsVerified,
+  createUserService,
+  getUserByIdService,
+  getAllUsersService,
+  updateUserService,
+  deleteUserService
+} from "../models/userModel.js";
 
-//Standarized response function 
+import bcrypt from 'bcrypt';
+import Joi from 'joi';
+
+// Email configuration
+// const transporter = nodemailer.createTransport({
+//   service: 'gmail',
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS
+//   }
+// });
+
 const handleResponse = (res, status, message, data = null) => {
-    res.status(status).json({
-        status,
-        message,
-        data
-    });
-}
+  res.status(status).json({ status, message, data });
+};
 
-export const createUser = async (req, res, next) => {
-    const { name, email} = req.body;
-    try{
-        const newUser =await createUserService({ name, email });
-        handleResponse(res, 201, 'User created successfully', newUser);
+// Fixed validation schema - all fields are optional for updates
+const updateUserSchema = Joi.object({
+  name: Joi.string().optional(),
+  email: Joi.string().email().optional(),
+  password: Joi.string().min(6).optional(),
+  verified: Joi.boolean().optional()
+}).min(1); // At least one field must be provided
 
-    }catch (error) {
-        next(error);
+// Validation middleware
+// const validateUpdateUser = (req, res, next) => {
+//   const { error } = updateUserSchema.validate(req.body);
+//   if (error) {
+//     return handleResponse(res, 400, error.details[0].message);
+//   }
+//   next();
+// };
+
+// Email Verification Controllers
+export const checkEmail = async (req, res) => {
+  console.log('Checking email:', req.body);
+  try {
+    const { email } = req.body;
+    const user = await checkEmailExists(email);
+
+    if (!user || !user.email) {
+      console.log(`Email not registered: ${email}`);
+      return handleResponse(res, 404, 'Email not registered');
     }
-}
 
-export const getAllUsers = async (req, res, next) => {
-    try{
-        const users =await getAllUsersService({});
-        handleResponse(res, 200, 'Users fetched successfully', users);
+    handleResponse(res, 200, 'Email is registered');
 
-    }catch (error) {
-        next(error);
-    }
-}
+  } catch (error) {
+    handleResponse(res, 500, 'Server error', error.message);
+  }
+};
 
-export const getUserById = async (req, res, next) => {
+export const verifyToken = async (req, res) => {
+  console.log('Verifying token:', req.body);
+  try {
+    const { email, token } = req.body;
+    const verification = await getVerificationToken(email, token);
+    console.log('Verification result:', verification);
     
-    try{
-        const user =await getUserByIdService( req.params.id );
-        if (!user) {
-            return handleResponse(res, 404, 'User not found');
-        }
-        handleResponse(res, 200, 'User fetched successfully', user);
-
-    }catch (error) {
-        next(error);
+    if (verification === false) {
+      console.log(`Invalid or expired token for email: ${email}`);
+      return handleResponse(res, 400, 'Invalid or expired token');
     }
-}
 
-export const updateUser = async (req, res, next) => {
-    const { name, email } = req.body;
-    try{
-        const updateUser = await updateUserService(req.params.id, { name, email });
-        if (!updateUser) {
-            return handleResponse(res, 404, 'User not found');
-        }
-        handleResponse(res, 200, 'User updated successfully', updateUser);
+    await markEmailAsVerified(email);
+    handleResponse(res, 200, 'Email verified successfully');
 
-    }catch (error) {
-        next(error);
+  } catch (error) {
+    handleResponse(res, 500, 'Server error', error.message);
+  }
+};
+
+// User CRUD Controllers
+export const createUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const existingUser = await checkEmailExists(email);
+
+    if (existingUser) {
+      return handleResponse(res, 400, 'Email already registered');
     }
-}
 
-export const deleteUser = async (req, res, next) => {
-    try{
-        const deletedUser = await deleteUserService(req.params.id);
-        if (!deletedUser) {
-            return handleResponse(res, 404, 'User not found');
-        }
-        handleResponse(res, 200, 'User deleted successfully', deletedUser);
+    const newUser = await createUserService({ name, email, password });
+    handleResponse(res, 201, 'User created successfully', newUser);
 
-    }catch (error) {
-        next(error);
+  } catch (error) {
+    handleResponse(res, 500, 'Server error', error.message);
+  }
+};
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await getAllUsersService();
+    handleResponse(res, 200, 'Users fetched successfully', users);
+  } catch (error) {
+    handleResponse(res, 500, 'Server error', error.message);
+  }
+};
+
+export const getUserById = async (req, res) => {
+  try {
+    const user = await getUserByIdService(req.params.id);
+    if (!user) {
+      return handleResponse(res, 404, 'User not found');
     }
-}
+    handleResponse(res, 200, 'User fetched successfully', user);
+  } catch (error) {
+    handleResponse(res, 500, 'Server error', error.message);
+  }
+};
+
+export const updateUser = async (req, res) => {
+  console.log('Updating user:', req.body);
+  console.log('User email:', req.params.email);
+  
+  try {
+    const { email } = req.params;
+    const updateData = {};
+
+    // Validate request body
+    const { error } = updateUserSchema.validate(req.body);
+    if (error) {
+      return handleResponse(res, 400, error.details[0].message);
+    }
+
+    // Build update object only with provided fields
+    if (req.body.name) updateData.name = req.body.name;
+    if (req.body.email) updateData.email = req.body.email;
+    if (req.body.verified !== undefined) updateData.verified = req.body.verified;
+    
+    if (req.body.password) {
+      // Validate password strength
+      if (req.body.password.length < 6) {
+        return handleResponse(res, 400, 'Password must be at least 6 characters long');
+      }
+      updateData.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    const updatedUser = await updateUserService(email, updateData);
+
+    if (updatedUser) {
+      // Remove password from response for security
+      const { password: _, ...userResponse } = updatedUser;
+      handleResponse(res, 200, 'User updated successfully', userResponse);
+    } else {
+      handleResponse(res, 404, 'User not found');
+    }
+  } catch (error) {
+    console.error('Update user error:', error);
+    handleResponse(res, 500, 'Server error', error.message);
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const deletedUser = await deleteUserService(req.params.id);
+    if (!deletedUser) {
+      return handleResponse(res, 404, 'User not found');
+    }
+    handleResponse(res, 200, 'User deleted successfully', deletedUser);
+  } catch (error) {
+    handleResponse(res, 500, 'Server error', error.message);
+  }
+};
