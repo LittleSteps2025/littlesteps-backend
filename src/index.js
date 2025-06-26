@@ -5,6 +5,7 @@ import pool from './config/db.js';
 import userRoutes from './routes/userRoutes.js'; // Importing user routes
 import errorHandler from './middlewares/errorHandler.js';
 import createUserTable from './data/createUserTable.js';
+import parentRouter from './routes/parent/parentRoutes.js';
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(cors());
 
 //Routes
 app.use('/api', userRoutes); // Using user routes
+app.use('/api/parent', parentRouter); // Using parent routes
 //Error handling middleware 
 app.use(errorHandler)
 //create table before starting the server
