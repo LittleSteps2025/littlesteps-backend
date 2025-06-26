@@ -3,7 +3,8 @@ import crypto from 'crypto';
 
 // Verification Token Functions
 export const generateVerificationToken = () => {
-  return crypto.randomBytes(20).toString('hex');
+  // Generate a 4-digit token for easier user input
+  return Math.floor(1000 + Math.random() * 9000).toString();
 };
 
 export const saveVerificationToken = async (email, token) => {
@@ -58,10 +59,10 @@ export const checkEmailExists = async (email) => {
 };
 
 export const createUserService = async (userData) => {
-  const { name, email, password } = userData;
+  const { name, email, password, role = 'parent', token } = userData;
   const result = await pool.query(
-    'INSERT INTO users (name, email, password, verified) VALUES ($1, $2, $3, $4) RETURNING *',
-    [name, email, password, false]
+    'INSERT INTO users (name, email, password, verified, role, token) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+    [name, email, password, false, role, token]
   );
   return result.rows[0];
 };
