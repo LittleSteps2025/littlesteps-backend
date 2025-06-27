@@ -6,22 +6,38 @@ import userRoutes from './routes/userRoutes.js'; // User routes
 import reportRoutes from './routes/reportRoutes.js'; // ✅ Report routes
 import errorHandler from './middlewares/errorHandler.js';
 import createUserTable from './data/createUserTable.js';
+
+import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
+
+
 import guardianRoutes from './routes/guardianRoutes.js'; // ✅ Guardian routes
+
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(express.json());
 app.use(cors());
 
+
+//Routes
+
+// app.use('/api', dailyRecordRoutes);
+
+//Error handling middleware 
+// app.use(errorHandler)
+// //create table before starting the server
+// createUserTable();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+//Testing POSTGRES connection
+
 // Routes
 app.use('/api/users', userRoutes); // Example: http://localhost:3001/api/users
 app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api/reports
 app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
-
+app.use('/api', dailyRecordRoutes);
 // Error handling middleware
 app.use(errorHandler);
 
@@ -29,6 +45,7 @@ app.use(errorHandler);
 createUserTable();
 
 // PostgreSQL test route
+
 app.get("/", async (req, res) => {
   try {
     const result = await pool.query('SELECT current_database()');
