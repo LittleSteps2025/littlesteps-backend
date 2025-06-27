@@ -1,14 +1,27 @@
 import express from 'express';
-import { createUser, deleteUser, getAllUsers, getUserById, updateUser } from '../controllers/userController.js';
+import {
+  checkEmail,
+  verifyToken,
+  createUser,
+  getUserById,
+  getAllUsers,
+  updateUser,
+  deleteUser
+} from '../controllers/userController.js';
 import validateUser from '../middlewares/inputValidator.js';
 
 const router = express.Router();
 
-router.post('/user',validateUser , createUser);
+// Email verification routes
+router.post('/users/check-email/', checkEmail);
+router.post('/users/verify-token', verifyToken);
+
+// User CRUD routes
+router.post('/users', validateUser, createUser);
 router.get('/users', getAllUsers);
 router.get('/users/:id', getUserById);
-router.put('/users/:id',validateUser, updateUser);
+// Note: Using email as parameter for updates, make sure this matches your needs
+router.put('/users/:email', updateUser); // Removed validateUser middleware as validation is done in controller
 router.delete('/users/:id', deleteUser);
-
 
 export default router;
