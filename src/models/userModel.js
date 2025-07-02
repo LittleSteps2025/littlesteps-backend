@@ -16,7 +16,7 @@ export const saveVerificationToken = async (email, token) => {
 
 export const getVerificationToken = async (email, token) => {
   const result = await pool.query(
-    'SELECT token FROM users WHERE email = $1',
+    'SELECT token FROM parents WHERE email = $1',
     [email]
   );
 
@@ -42,17 +42,17 @@ export const getVerificationToken = async (email, token) => {
   }
 };
 
-export const markEmailAsVerified = async (email) => {
+export const markEmailAsVerified = async (email ,hashedPassword) => {
   await pool.query(
-    'UPDATE users SET verified = true WHERE email = $1',
-    [email]
+    'UPDATE parents SET verified = true, password = $2 WHERE email = $1',
+    [email, hashedPassword]
   );
   console.log(`Email ${email} marked as verified`);
 };
 
 // User CRUD Functions
 export const checkEmailExists = async (email) => {
-  const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+  const result = await pool.query('SELECT * FROM parents WHERE email = $1', [email]);
   console.log('Checking email:', email, 'Result:', result.rows);
   return result.rows[0];
 };

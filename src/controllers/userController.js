@@ -66,7 +66,7 @@ export const checkEmail = async (req, res) => {
 export const verifyToken = async (req, res) => {
   console.log('Verifying token:', req.body);
   try {
-    const { email, token } = req.body;
+    const { email, token, password } = req.body;
     const verification = await getVerificationToken(email, token);
     console.log('Verification result:', verification);
     
@@ -74,8 +74,9 @@ export const verifyToken = async (req, res) => {
       console.log(`Invalid or expired token for email: ${email}`);
       return handleResponse(res, 400, 'Invalid or expired token');
     }
-
-    await markEmailAsVerified(email);
+    // When creating a user with password
+    const hashedPassword = await bcrypt.hash(password, 12); // 12 salt rounds
+    await markEmailAsVerified(email, hashedPassword);
     handleResponse(res, 200, 'Email verified successfully');
 
   } catch (error) {
