@@ -158,73 +158,103 @@ export const supervisorLogin = async (req, res) => {
     );
 
     if (userResult.rows.length === 0) {
-      return res.status(404).json({
+      return res.status(401).json({
         success: false,
-        message: 'User not found or account inactive'
+        message: 'Invalid email or password'
       });
     }
 
     const dbUser = userResult.rows[0];
 
-    // Verify user exists in Firebase and get Firebase user
-    let firebaseUser;
+    // Verify password using Firebase Auth REST API
+    // You need to add your Firebase Web API Key to .env file
+    const firebaseApiKey = process.env.FIREBASE_API_KEY;
+    
+    if (!firebaseApiKey) {
+      console.error('FIREBASE_API_KEY not found in environment variables');
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error'
+      });
+    }
+
     try {
-      firebaseUser = await admin.auth().getUserByEmail(email);
-    } catch (firebaseError) {
-      console.error('Firebase user not found:', firebaseError);
-      return res.status(404).json({
-        success: false,
-        message: 'User not found in authentication system'
+      // Use Firebase Web API to verify password
+      const firebaseResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          returnSecureToken: true
+        })
       });
-    }
 
-    // Check if Firebase user is disabled
-    if (firebaseUser.disabled) {
-      return res.status(403).json({
-        success: false,
-        message: 'Account is disabled'
-      });
-    }
+      const firebaseData = await firebaseResponse.json();
 
-    // Create a custom token for the user (Firebase handles password verification on client)
-    const customToken = await admin.auth().createCustomToken(firebaseUser.uid, {
-      role: dbUser.role,
-      userId: dbUser.user_id,
-      email: dbUser.email
-    });
+      if (!firebaseResponse.ok) {
+        console.error('Firebase auth failed:', firebaseData);
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password'
+        });
+      }
 
-    res.json({
-      success: true,
-      message: 'Login verification successful',
-      user: {
-        id: dbUser.user_id,
-        firebaseUid: firebaseUser.uid,
-        name: dbUser.name,
-        email: dbUser.email,
+      // Get Firebase user details using Admin SDK
+      const firebaseUser = await admin.auth().getUser(firebaseData.localId);
+      
+      // Check if Firebase user is disabled
+      if (firebaseUser.disabled) {
+        return res.status(403).json({
+          success: false,
+          message: 'Account is disabled'
+        });
+      }
+
+      // Create a custom token for the user (password has been verified)
+      const customToken = await admin.auth().createCustomToken(firebaseUser.uid, {
         role: dbUser.role,
-        nic: dbUser.nic,
-        address: dbUser.address,
-        phone: dbUser.phone,
-        image: dbUser.image,
-        status: dbUser.status,
-        created_at: dbUser.created_at,
-        // Include supervisor-specific data if it exists
-        sup_id: dbUser.sup_id || null,
-        cv: dbUser.cv || null
-      },
-      customToken: customToken
-    });
+        userId: dbUser.user_id,
+        email: dbUser.email
+      });
+
+      console.log(`✅ Login successful for ${email} (${dbUser.role})`);
+
+      res.json({
+        success: true,
+        message: 'Login successful',
+        user: {
+          id: dbUser.user_id,
+          firebaseUid: firebaseUser.uid,
+          name: dbUser.name,
+          email: dbUser.email,
+          role: dbUser.role,
+          nic: dbUser.nic,
+          address: dbUser.address,
+          phone: dbUser.phone,
+          image: dbUser.image,
+          status: dbUser.status,
+          created_at: dbUser.created_at,
+          // Include supervisor-specific data if it exists
+          sup_id: dbUser.sup_id || null,
+          cv: dbUser.cv || null
+        },
+        customToken: customToken
+      });
+
+    } catch (authError) {
+      console.error('Firebase authentication failed:', authError);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
 
   } catch (error) {
     console.error('❌ Supervisor login error:', error);
     
-    if (error.code === 'auth/user-not-found') {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
-    }
-
     res.status(500).json({
       success: false,
       message: 'Login failed',
