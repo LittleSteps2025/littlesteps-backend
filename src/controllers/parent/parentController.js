@@ -27,8 +27,13 @@ export const parentLogin = async (req, res) => {
       });
     }
 
-    // Database lookup - find parent by email
-    const query = 'SELECT * FROM parents WHERE email = $1';
+    // Database lookup - join user and parent tables
+    const query = `
+      SELECT u.*, p.parent_id, p.password, p.verified, p.token
+      FROM "user" u 
+      JOIN parent p ON u.user_id = p.user_id 
+      WHERE u.email = $1 AND u.role = 'parent'
+    `;
     const result = await pool.query(query, [email]);
 
     if (result.rows.length === 0) {
@@ -50,6 +55,15 @@ export const parentLogin = async (req, res) => {
       });
     }
 
+    // Check if password exists (account setup completed)
+    if (!parent.password) {
+      return res.status(403).json({
+        success: false,
+        message: 'Account setup not completed. Please complete your registration.',
+        error: 'ACCOUNT_SETUP_INCOMPLETE'
+      });
+    }
+
     // Password verification
     const isPasswordValid = await bcrypt.compare(password, parent.password);
     
@@ -64,30 +78,33 @@ export const parentLogin = async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { 
-        id: parent.id,
+        id: parent.user_id,
+        parentId: parent.parent_id,
         email: parent.email,
-        role: 'parent'
+        role: parent.role
       },
       JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    // Success response - exclude password from response
-    const { password: _, ...parentData } = parent;
+    // Success response - exclude password and token from response
+    const { password: _, token: __, ...parentData } = parent;
     
     res.status(200).json({
       success: true,
       message: 'Login successful',
       data: {
         user: {
-          id: parentData.id,
+          id: parentData.user_id,
+          parentId: parentData.parent_id,
           email: parentData.email,
           name: parentData.name,
           phone: parentData.phone,
-          children: parentData.children,
+          address: parentData.address,
+          image: parentData.image,
           verified: parentData.verified,
-          created_at: parentData.created_at,
-          updated_at: parentData.updated_at
+          status: parentData.status,
+          created_at: parentData.created_at
         },
         token,
         tokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
