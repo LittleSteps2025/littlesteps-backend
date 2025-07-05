@@ -5,7 +5,7 @@ import pool from './config/db.js';
 import userRoutes from './routes/userRoutes.js'; // User routes
 import reportRoutes from './routes/reportRoutes.js'; // ✅ Report routes
 import errorHandler from './middlewares/errorHandler.js';
-import createUserTable from './data/createUserTable.js';
+// import createUserTable from './data/createUserTable.js';
 
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 
@@ -42,7 +42,7 @@ app.use('/api', dailyRecordRoutes);
 app.use(errorHandler);
 
 // Create user table before starting the server
-createUserTable();
+// createUserTable();
 
 // PostgreSQL test route
 
