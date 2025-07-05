@@ -7,11 +7,11 @@ const ReportModel = {
     const result = await pool.query(`
       SELECT 
         report.*,
-        children.name AS child_name,
-        children.age AS child_age,
-        children.group AS child_group
+        child.name AS child_name,
+        child.age AS child_age,
+        child.group AS child_group
       FROM report
-      JOIN children ON report."childId" = children.id
+      JOIN child ON report."childId" = child.child_id
     `);
     return result.rows;
   },
@@ -31,11 +31,11 @@ const ReportModel = {
       `
   SELECT 
     report.*, 
-    children.name AS child_name,
-    children.age AS child_age,
-    children.group AS child_group
+    child.name AS child_name,
+    child.age AS child_age,
+    child.group AS child_group
   FROM report
-  JOIN children ON report."childId" = children.id
+  JOIN child ON report."childId" = child.child_id
   WHERE report."childId" = $1
 `,
       [childId]
