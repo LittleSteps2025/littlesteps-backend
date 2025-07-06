@@ -3,14 +3,15 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import pool from './config/db.js';
 import userRoutes from './routes/userRoutes.js'; // User routes
-import reportRoutes from './routes/reportRoutes.js'; // ✅ Report routes
+import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes
+import supervisorRoutes from './routes/supervisorRoutes.js'; // ✅ Supervisor and Admin routes
 import errorHandler from './middlewares/errorHandler.js';
 // import createUserTable from './data/createUserTable.js';
 
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 
 
-import guardianRoutes from './routes/guardianRoutes.js'; // ✅ Guardian routes
+import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 
 
 dotenv.config();
@@ -37,6 +38,7 @@ app.use(cors());
 app.use('/api/users', userRoutes); // Example: http://localhost:3001/api/users
 app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api/reports
 app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
+app.use('/api/supervisors', supervisorRoutes); // ✅ Supervisor and Admin routes
 app.use('/api', dailyRecordRoutes);
 // Error handling middleware
 app.use(errorHandler);

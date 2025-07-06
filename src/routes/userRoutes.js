@@ -13,8 +13,8 @@ import validateUser from '../middlewares/inputValidator.js';
 const router = express.Router();
 
 // Email verification routes
-router.post('/users/check-email/', checkEmail);
-router.post('/users/verify-token', verifyToken);
+router.post('/check-email/', checkEmail);
+router.post('/verify-token', verifyToken);
 
 // User CRUD routes
 router.post('/users', validateUser, createUser);
