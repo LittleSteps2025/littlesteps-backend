@@ -1,17 +1,20 @@
-import pool from '../config/db.js';
+import pool from '../../config/db.js';
 
 const GuardianModel = {
   getGuardiansByChildId: async (childId) => {
     const result = await pool.query(
-      `SELECT g.id, g.name
-       FROM guardian g
-       JOIN "child-guardian" cg ON g.id = cg."guardianId"
-       WHERE cg."childId" = $1
-       ORDER BY g.name ASC`,
+      `SELECT name
+       FROM guardian
+       WHERE parent_id = (
+         SELECT parent_id FROM child WHERE child_id = $1
+       )
+       ORDER BY name ASC`,
       [childId]
     );
-    return result.rows;
+    return result.rows;  // array of guardians with { name }
   },
+
+
 
 // Optionally, get all guardians (if needed)
   getAllGuardians: async () => {

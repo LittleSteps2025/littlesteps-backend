@@ -1,5 +1,5 @@
 import express from 'express';
-import { getGuardiansByChildId } from '../controllers/guardianController.js'; // or reportController if you put it there
+import { getGuardiansByChildId } from '../../controllers/teacher/guardianController.js'; // or reportController if you put it there
 
 const router = express.Router();
 

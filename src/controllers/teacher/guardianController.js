@@ -1,4 +1,4 @@
-import GuardianModel from '../models/guardianModel.js';
+import GuardianModel from '../../models/teacher/guardianModel.js';
 
 export const getGuardiansByChildId = async (req, res, next) => {
   const { childId } = req.params;
