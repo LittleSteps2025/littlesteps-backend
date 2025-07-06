@@ -3,14 +3,13 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import pool from './config/db.js';
 import userRoutes from './routes/userRoutes.js'; // User routes
-import reportRoutes from './routes/reportRoutes.js'; // ✅ Report routes
+import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes
 import errorHandler from './middlewares/errorHandler.js';
-import createUserTable from './data/createUserTable.js';
 
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 
 
-import guardianRoutes from './routes/guardianRoutes.js'; // ✅ Guardian routes
+import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 
 
 dotenv.config();
@@ -42,7 +41,7 @@ app.use('/api', dailyRecordRoutes);
 app.use(errorHandler);
 
 // Create user table before starting the server
-createUserTable();
+// createUserTable();
 
 // PostgreSQL test route
 
