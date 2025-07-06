@@ -369,3 +369,4 @@ export const checkParentExists = async (email) => {
   console.log('Checking parent email:', email, 'Result:', result.rows.length > 0);
   return result.rows[0];
 };
+
