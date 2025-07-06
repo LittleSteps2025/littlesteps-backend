@@ -18,7 +18,7 @@ const GuardianModel = {
 
 // Optionally, get all guardians (if needed)
   getAllGuardians: async () => {
-    const result = await pool.query(`SELECT * FROM guardians`);
+    const result = await pool.query(`SELECT * FROM guardian`);
     return result.rows;
   },
 };
