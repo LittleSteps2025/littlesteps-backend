@@ -6,10 +6,11 @@ import userRoutes from './routes/userRoutes.js'; // User routes
 import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes
 import supervisorRoutes from './routes/supervisorRoutes.js'; // ✅ Supervisor and Admin routes
 import errorHandler from './middlewares/errorHandler.js';
+import parentRoutes from './routes/parentRoutes.js'; // ✅ Parent routes
 // import createUserTable from './data/createUserTable.js';
 
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
-
+import announcementRoutes from './routes/parent/announcementRoutes.js'; // Parent announcement routes
 
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 
@@ -38,8 +39,12 @@ app.use(cors());
 app.use('/api/users', userRoutes); // Example: http://localhost:3001/api/users
 app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api/reports
 app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
-app.use('/api/supervisors', supervisorRoutes); // ✅ Supervisor and Admin routes
+app.use('/api/supervisors', supervisorRoutes);
+app.use('/api/parents', parentRoutes);// ✅ Supervisor and Admin routes
 app.use('/api', dailyRecordRoutes);
+app.use('/api/announcements', announcementRoutes);
+
+
 // Error handling middleware
 app.use(errorHandler);
 
