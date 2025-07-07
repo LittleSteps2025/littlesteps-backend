@@ -7,7 +7,7 @@ import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report route
 import supervisorRoutes from './routes/supervisorRoutes.js'; // ✅ Supervisor and Admin routes
 import errorHandler from './middlewares/errorHandler.js';
 import parentRoutes from './routes/parentRoutes.js'; // ✅ Parent routes
-// import createUserTable from './data/createUserTable.js';
+import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
 
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 import announcementRoutes from './routes/parent/announcementRoutes.js'; // Parent announcement routes
@@ -41,6 +41,7 @@ app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api
 app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
 app.use('/api/supervisors', supervisorRoutes);
 app.use('/api/parents', parentRoutes);// ✅ Supervisor and Admin routes
+app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
 app.use('/api', dailyRecordRoutes);
 app.use('/api/announcements', announcementRoutes);
 
