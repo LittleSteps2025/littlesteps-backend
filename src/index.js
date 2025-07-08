@@ -12,7 +12,7 @@ import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 
 
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
-
+import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://localhost:3001/api/events
 
 dotenv.config();
 
@@ -40,7 +40,8 @@ app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api
 app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
 app.use('/api/supervisors', supervisorRoutes); // ✅ Supervisor and Admin routes
 app.use('/api', dailyRecordRoutes);
-// Error handling middleware
+app.use('/api/events', eventRoutes); 
+
 app.use(errorHandler);
 
 // Create user table before starting the server
