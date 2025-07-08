@@ -3,18 +3,18 @@ import pool from '../../config/db.js';
 
 export const createDailyRecord = async (data) => {
   const {
-    breakfast, tea_time, lunch, snack_time, medicine, special_notes, childId = 1,created_date
+   breakfirst, morning_snack, lunch, evening_snack, medicine, special_note, child_id = 1,create_date
   } = data;
 
   const query = `
     INSERT INTO report (
-      breakfast, tea_time, lunch, snack_time, medicine, special_notes, "childId",created_date
+      breakfirst, morning_snack, lunch, evening_snack, medicine, special_note, "child_id",create_date
     )
     VALUES ($1, $2, $3, $4, $5, $6, $7 , $8)
     RETURNING *`;
 
   const values = [
-    breakfast, tea_time, lunch, snack_time, medicine, special_notes, childId,created_date
+    breakfirst, morning_snack, lunch, evening_snack, medicine, special_note, child_id,create_date
   ];
 
   try {

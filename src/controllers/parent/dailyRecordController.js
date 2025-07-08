@@ -4,24 +4,24 @@ import { createDailyRecord } from '../../models/parent/dailyRecordModel.js'; // 
 const dailyRecordController = {
   createDailyRecord: async (req, res, next) => {
     const {
-      breakfast, tea_time, lunch, snack_time, medicine, special_notes,
-      childId, date // Ensure 'date' is destructured from req.body
+      breakfirst, morning_snack, lunch, evening_snack, medicine, special_note,
+      child_id, date // Ensure 'date' is destructured from req.body
     } = req.body;
 
     // Basic validation (adjust as needed for your specific requirements)
-    if (!childId || (!breakfast && !tea_time && !lunch && !snack_time && !medicine && !special_notes && !date)) {
+    if (!child_id || (!breakfirst && !morning_snack && !lunch && !evening_snack && !medicine && !special_note && !date)) {
       return res.status(400).json({ message: 'Missing Information: Please provide at least one record detail (meal, medicine, notes) and a child ID, and a date.' });
     }
 
     const dailyRecordData = {
-      childId,
+      child_id,
       date: date || new Date().toISOString().slice(0, 10), // Use provided date or default to current date
-      breakfast: breakfast || '',
-      tea_time: tea_time || '',
+      breakfirst: breakfirst || '',
+      morning_snack: morning_snack || '',
       lunch: lunch || '',
-      snack_time: snack_time || '',
+      evening_snack: evening_snack || '',
       medicine: medicine || '',
-      special_notes: special_notes || '',
+      special_note: special_note || '',
     };
 
     try {
