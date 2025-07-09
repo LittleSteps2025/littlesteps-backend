@@ -1,17 +1,69 @@
-import mongoose from 'mongoose';
+class ChildController {
+    constructor(childModel) {
+        this.childModel = childModel;
+    }
 
-const parentSchema = new mongoose.Schema({
-  parent_id: { type: String, unique: true, required: true },
-  parentName: { type: String, required: true },
-  parentNIC: { type: String, required: true, unique: true },
-  parentEmail: { type: String, required: true, unique: true },
-  parentAddress: { type: String, required: true },
-  parentContact: { type: String, required: true },
-  password: { type: String, required: true },
-  user_id: { type: String, required: true },
-  token: { type: String },
-  verified: { type: Boolean, default: false },
-  noti_count: { type: Number, default: 0 }
-});
+    async getAll(req, res) {
+        try {
+            const children = await this.childModel.findAll();
+            res.status(200).json(children);
+        } catch (error) {
+            res.status(500).json({ message: 'Error retrieving children', error });
+        }
+    }
 
-export default mongoose.model('Parent', parentSchema);
+    async getById(req, res) {
+        const { id } = req.params;
+        try {
+            const child = await this.childModel.findById(id);
+            if (child) {
+                res.status(200).json(child);
+            } else {
+                res.status(404).json({ message: 'Child not found' });
+            }
+        } catch (error) {
+            res.status(500).json({ message: 'Error retrieving child', error });
+        }
+    }
+
+    async create(req, res) {
+        const childData = req.body;
+        try {
+            const newChild = await this.childModel.create(childData);
+            res.status(201).json(newChild);
+        } catch (error) {
+            res.status(500).json({ message: 'Error creating child', error });
+        }
+    }
+
+    async update(req, res) {
+        const { id } = req.params;
+        const childData = req.body;
+        try {
+            const updatedChild = await this.childModel.update(id, childData);
+            if (updatedChild) {
+                res.status(200).json(updatedChild);
+            } else {
+                res.status(404).json({ message: 'Child not found' });
+            }
+        } catch (error) {
+            res.status(500).json({ message: 'Error updating child', error });
+        }
+    }
+
+    async delete(req, res) {
+        const { id } = req.params;
+        try {
+            const deleted = await this.childModel.remove(id);
+            if (deleted) {
+                res.status(204).send();
+            } else {
+                res.status(404).json({ message: 'Child not found' });
+            }
+        } catch (error) {
+            res.status(500).json({ message: 'Error deleting child', error });
+        }
+    }
+}
+
+export default ChildController;
