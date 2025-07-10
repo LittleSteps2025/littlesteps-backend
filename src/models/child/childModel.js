@@ -1,33 +1,35 @@
+import pool from '../../config/db.js';
+
 class ChildModel {
-    constructor(db) {
-        this.db = db; // db should be a database connection or ORM instance
-    }
-
     async findAll() {
-        return this.db('children').select('*');
+        const { rows } = await pool.query('SELECT * FROM child');
+        return rows;
     }
-
-    async findById(id) {
-        return this.db('children').where({ child_id: id }).first();
+    async findById(child_id) {
+        const { rows } = await pool.query('SELECT * FROM child WHERE child_id = $1', [child_id]);
+        return rows[0];
     }
-
-    async create(childData) {
-        const [child] = await this.db('children').insert(childData).returning('*');
-        return child;
+    async create(child) {
+        const { parent_id, name, age, gender, dob, group_id, image, bc, blood_type, mr, allergies, created_at, package_id } = child;
+        const { rows } = await pool.query(
+            `INSERT INTO child (parent_id, name, age, gender, dob, group_id, image, bc, blood_type, mr, allergies, created_at, package_id)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+            [parent_id, name, age, gender, dob, group_id, image, bc, blood_type, mr, allergies, created_at, package_id]
+        );
+        return rows[0];
     }
-
-    async update(id, childData) {
-        const [child] = await this.db('children')
-            .where({ child_id: id })
-            .update(childData)
-            .returning('*');
-        return child;
+    async update(child_id, child) {
+        const { parent_id, name, age, gender, dob, group_id, image, bc, blood_type, mr, allergies, created_at, package_id } = child;
+        const { rows } = await pool.query(
+            `UPDATE child SET parent_id=$1, name=$2, age=$3, gender=$4, dob=$5, group_id=$6, image=$7, bc=$8, blood_type=$9, mr=$10, allergies=$11, created_at=$12, package_id=$13 WHERE child_id=$14 RETURNING *`,
+            [parent_id, name, age, gender, dob, group_id, image, bc, blood_type, mr, allergies, created_at, package_id, child_id]
+        );
+        return rows[0];
     }
-
-    async remove(id) {
-        const deleted = await this.db('children').where({ child_id: id }).del();
-        return deleted > 0;
+    async remove(child_id) {
+        const { rowCount } = await pool.query('DELETE FROM child WHERE child_id = $1', [child_id]);
+        return rowCount > 0;
     }
 }
 
-export default ChildModel;
+export default new ChildModel();

@@ -1,11 +1,9 @@
-class ChildController {
-    constructor(childModel) {
-        this.childModel = childModel;
-    }
+import childModel from '../../models/child/childModel.js';
 
+class ChildController {
     async getAll(req, res) {
         try {
-            const children = await this.childModel.findAll();
+            const children = await childModel.findAll();
             res.status(200).json(children);
         } catch (error) {
             res.status(500).json({ message: 'Error retrieving children', error });
@@ -15,7 +13,7 @@ class ChildController {
     async getById(req, res) {
         const { id } = req.params;
         try {
-            const child = await this.childModel.findById(id);
+            const child = await childModel.findById(id);
             if (child) {
                 res.status(200).json(child);
             } else {
@@ -29,7 +27,7 @@ class ChildController {
     async create(req, res) {
         const childData = req.body;
         try {
-            const newChild = await this.childModel.create(childData);
+            const newChild = await childModel.create(childData);
             res.status(201).json(newChild);
         } catch (error) {
             res.status(500).json({ message: 'Error creating child', error });
@@ -40,7 +38,7 @@ class ChildController {
         const { id } = req.params;
         const childData = req.body;
         try {
-            const updatedChild = await this.childModel.update(id, childData);
+            const updatedChild = await childModel.update(id, childData);
             if (updatedChild) {
                 res.status(200).json(updatedChild);
             } else {
@@ -54,7 +52,7 @@ class ChildController {
     async delete(req, res) {
         const { id } = req.params;
         try {
-            const deleted = await this.childModel.remove(id);
+            const deleted = await childModel.remove(id);
             if (deleted) {
                 res.status(204).send();
             } else {
@@ -66,4 +64,4 @@ class ChildController {
     }
 }
 
-export default ChildController;
+export default new ChildController();
