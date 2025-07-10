@@ -7,7 +7,6 @@ import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report route
 import supervisorRoutes from './routes/supervisorRoutes.js'; // ✅ Supervisor and Admin routes
 import errorHandler from './middlewares/errorHandler.js';
 import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
-
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 
 
@@ -35,7 +34,7 @@ app.use(cors());
 //Testing POSTGRES connection
 
 // Routes
-app.use('/api/users', userRoutes); // Example: http://localhost:3001/api/users
+app.use('/api/users', userRoutes); // User routes
 app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api/reports
 app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
 app.use('/api/supervisors', supervisorRoutes); // ✅ Supervisor and Admin routes

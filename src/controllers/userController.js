@@ -8,11 +8,15 @@ import {
   createUserService,
   getUserByIdService,
   getAllUsersService,
+  getAllUsersSimple,
   updateUserService,
   deleteUserService,
   getParentByEmail,
   updateParentPassword
 } from "../models/userModel.js";
+
+import * as UserModel from '../models/userModel.js';
+import pool from '../config/db.js';
 
 import bcrypt from 'bcrypt';
 import Joi from 'joi';
@@ -145,6 +149,21 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
+
+export const getAllUsersRaw = async (req, res) => {
+  try {
+    const users = await UserModel.getAllUsersSimple();
+    // Use consistent response format with your other controllers
+    handleResponse(res, 200, 'Users fetched successfully', users);
+    
+    // OR if you want to keep it simple:
+    // res.json({ data: users });
+  } catch (err) {
+    console.error('Error fetching users:', err);
+    handleResponse(res, 500, 'Server error', err.message);
+  }
+};
+
 export const getUserById = async (req, res) => {
   try {
     const user = await getUserByIdService(req.params.id);
@@ -217,5 +236,14 @@ export const deleteUser = async (req, res) => {
     handleResponse(res, 200, 'User deleted successfully', deletedUser);
   } catch (error) {
     handleResponse(res, 500, 'Server error', error.message);
+  }
+};
+
+export const getAllUsersDirect = async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM "user"');
+    res.json({ users: result.rows });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
   }
 };
