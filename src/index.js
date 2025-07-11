@@ -7,8 +7,9 @@ import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report route
 import supervisorRoutes from './routes/supervisorRoutes.js'; // ✅ Supervisor and Admin routes
 import errorHandler from './middlewares/errorHandler.js';
 import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
-
+import parentRoutes from './routes/parent/parentRoutes.js';
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
+import childRoutes from './routes/child/childRoutes.js'; // Child routes
 
 
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
@@ -40,7 +41,9 @@ app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api
 app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
 app.use('/api/supervisors', supervisorRoutes); // ✅ Supervisor and Admin routes
 app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
+app.use('/api/parents', parentRoutes);
 app.use('/api', dailyRecordRoutes);
+app.use('/api/child', childRoutes); // Child routes
 // Error handling middleware
 app.use(errorHandler);
 
