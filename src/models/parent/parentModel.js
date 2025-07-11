@@ -1,10 +1,9 @@
 import pool from '../../config/db.js';
 import bcrypt from 'bcrypt';
 
-class ParentModel {
 
   // Create a new parent
-  static async createParent(parentData) {
+  export const createParent = async (parentData) => {
     const { email, password, name } = parentData;
     
     // Hash password
@@ -27,7 +26,7 @@ class ParentModel {
   }
 
   // Find parent by email
-  static async findByEmail(email) {
+  export const findByEmail = async (email) => {
     const query = 'SELECT * FROM parent WHERE email = $1';
     
     try {
@@ -40,7 +39,7 @@ class ParentModel {
   }
 
   // Find parent by ID
-  static async findById(id) {
+  export const findById = async (id) => {
     const query = 'SELECT id, email, name, verified, created_at, updated_at FROM parent WHERE id = $1';
     
     try {
@@ -53,7 +52,7 @@ class ParentModel {
   }
 
   // Update parent verification status
-  static async updateVerificationStatus(id, verified = true) {
+  export const updateVerificationStatus = async (id, verified = true) => {
     const query = `
       UPDATE parent 
       SET verified = $1, updated_at = CURRENT_TIMESTAMP 
@@ -71,7 +70,7 @@ class ParentModel {
   }
 
   // Update parent password
-  static async updatePassword(id, newPassword) {
+  export const updatePassword = async (id, newPassword) => {
     const saltRounds = 12;
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
     
@@ -92,7 +91,7 @@ class ParentModel {
   }
 
   // Delete parent
-  static async deleteParent(id) {
+  export const deleteParent = async (id) => {
     const query = 'DELETE FROM parent WHERE id = $1 RETURNING id, email, name;';
     
     try {
@@ -105,7 +104,7 @@ class ParentModel {
   }
 
   // Get all parents (admin function)
-  static async getAllParents() {
+  export const getAllParents = async () => {
     const query = 'SELECT id, email, name, verified, created_at, updated_at FROM parent ORDER BY created_at DESC';
     
     try {
@@ -116,6 +115,31 @@ class ParentModel {
       throw error;
     }
   }
-}
 
-export default ParentModel;
+  export const getVerifiedParentByEmail = async (email) => {
+    try {
+      // First, get the user_id from the user table
+      const userQuery = 'SELECT user_id FROM "user" WHERE email = $1 AND role = $2';
+      const userResult = await pool.query(userQuery, [email, 'parent']);
+      
+      if (userResult.rows.length === 0) {
+        return false; // User not found or not a parent
+      }
+      
+      const userId = userResult.rows[0].user_id;
+      
+      // Then, check if the parent is verified
+      const verificationQuery = 'SELECT verified FROM parent WHERE user_id = $1';
+      const verificationResult = await pool.query(verificationQuery, [userId]);
+
+      if (verificationResult.rows.length === 0 || verificationResult.rows[0].verified === false) {
+        return false; // Parent record not found or not verified
+      }
+      
+      return verificationResult.rows[0].verified === true;
+    } catch (error) {
+      console.error('Error getting verified parent by email:', error);
+      throw error;
+    }
+  }
+
