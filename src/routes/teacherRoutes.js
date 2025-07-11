@@ -1,5 +1,5 @@
 import express from 'express';
-import { teacherAuth, getAllTeachers, searchTeachers, getTeacherById, getAvailableGroups } from '../controllers/teacherController.js';
+import { teacherAuth, getAllTeachers, searchTeachers, getTeacherById, getAvailableGroups, teacherLogin } from '../controllers/teacherController.js';
 
 const router = express.Router();
 
@@ -17,5 +17,7 @@ router.get('/teachers/:id', getTeacherById);
 
 // Get available groups for teacher assignment
 router.get('/available-groups', getAvailableGroups);
+
+router.post('/teacherLogin', teacherLogin);
 
 export default router;
