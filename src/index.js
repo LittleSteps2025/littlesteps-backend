@@ -9,9 +9,8 @@ import errorHandler from './middlewares/errorHandler.js';
 import parentRoutes from './routes/parentRoutes.js'; // ✅ Parent authentication routes
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 import authRoutes from './routes/authRoutes.js'; // ✅ Auth routes for password reset
-
-import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes (corrected path)
-
+import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
+import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://localhost:3001/api/events
 
 dotenv.config();
 
@@ -40,7 +39,8 @@ app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001
 app.use('/api/auth', authRoutes); // ✅ Password reset endpoints: /api/auth/forgot-password, etc.
 app.use('/api/parents', parentRoutes); // ✅ Parent authentication routes
 app.use('/api', dailyRecordRoutes);
-// Error handling middleware
+app.use('/api/events', eventRoutes); 
+
 app.use(errorHandler);
 
 // Create password reset tables
