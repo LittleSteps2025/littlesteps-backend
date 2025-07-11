@@ -8,7 +8,7 @@ import supervisorRoutes from './routes/supervisorRoutes.js'; // ✅ Supervisor a
 import errorHandler from './middlewares/errorHandler.js';
 import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
-
+import announcementRoutes from './routes/announcementRoute.js'; // Announcement routes
 
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 
@@ -40,6 +40,7 @@ app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001
 app.use('/api/supervisors', supervisorRoutes); // ✅ Supervisor and Admin routes
 app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
 app.use('/api', dailyRecordRoutes);
+app.use('/api/announcements', announcementRoutes); // Announcement routes
 // Error handling middleware
 app.use(errorHandler);
 

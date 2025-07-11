@@ -149,18 +149,12 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-
 export const getAllUsersRaw = async (req, res) => {
   try {
     const users = await UserModel.getAllUsersSimple();
-    // Use consistent response format with your other controllers
-    handleResponse(res, 200, 'Users fetched successfully', users);
-    
-    // OR if you want to keep it simple:
-    // res.json({ data: users });
+    res.json({ users });
   } catch (err) {
-    console.error('Error fetching users:', err);
-    handleResponse(res, 500, 'Server error', err.message);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

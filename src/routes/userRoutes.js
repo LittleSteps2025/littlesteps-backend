@@ -19,7 +19,7 @@ router.post('/check-email/', checkEmail);
 router.post('/verify-token', verifyToken);
 
 // User CRUD routes
-router.get('/getEveryone', getAllUsersRaw); // Using validateUser middleware for signup
+router.post('/getEveryone', getAllUsersRaw); // Using validateUser middleware for signup
 router.post('/users', validateUser, createUser);
 router.get('/users', getAllUsers);
 router.get('/users/raw', getAllUsersRaw); // Added raw users route
