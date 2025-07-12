@@ -5,10 +5,14 @@ import pool from './config/db.js';
 import userRoutes from './routes/userRoutes.js'; // User routes
 import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes (corrected path)
 import errorHandler from './middlewares/errorHandler.js';
+
 // import createPasswordResetTables from './data/createPasswordResetTables.js';
 import parentRoutes from './routes/parentRoutes.js'; // ✅ Parent authentication routes
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 import authRoutes from './routes/authRoutes.js'; // ✅ Auth routes for password reset
+import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
+import announcementRoutes from './routes/parent/announcementRoutes.js'; // Parent announcement routes
+
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://localhost:3001/api/events
 import childrenRoutes from './routes/parent/childrenRoutes.js'; // Children routes
@@ -36,12 +40,20 @@ app.use(cors());
 app.use('/api/users', userRoutes); // Example: http://localhost:3001/api/users
 app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api/reports
 app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
+
 app.use('/api/auth', authRoutes); // ✅ Password reset endpoints: /api/auth/forgot-password, etc.
 app.use('/api/parents', parentRoutes); // ✅ Parent authentication routes
 app.use('/api', dailyRecordRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/children', childrenRoutes); 
 
+app.use('/api/supervisors', supervisorRoutes);
+app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
+
+app.use('/api/announcements', announcementRoutes);
+
+
+// Error handling middleware
 app.use(errorHandler);
 
 // Create password reset tables
