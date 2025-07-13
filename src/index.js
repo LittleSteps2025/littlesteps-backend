@@ -13,6 +13,8 @@ import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://localhost:3001/api/events
+import childRoutes from './routes/teacher/childRoutes.js'; // Example: http://localhost:3001/api/child/children
+
 
 dotenv.config();
 
@@ -42,6 +44,7 @@ app.use('/api/supervisors', supervisorRoutes); // ✅ Supervisor and Admin route
 app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
 app.use('/api', dailyRecordRoutes);
 app.use('/api/events', eventRoutes); 
+app.use('/api/child', childRoutes);
 
 app.use(errorHandler);
 
