@@ -9,6 +9,6 @@ router.get('/', parentController.getAll);
 router.get('/:id', parentController.getById);
 router.post('/', parentController.create);
 router.put('/:id', parentController.update);
-router.delete('/:id', parentController.delete);
+//router.delete('/:id', parentController.delete);
 
 export default router;
