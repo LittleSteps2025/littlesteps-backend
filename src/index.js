@@ -12,6 +12,7 @@ import authRoutes from './routes/authRoutes.js'; // ✅ Auth routes for password
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://localhost:3001/api/events
 import childrenRoutes from './routes/parent/childrenRoutes.js'; // Children routes
+import teacherRoutes from './routes/teacherRoutes.js'; // Example: http://localhost:3001/api/teachers
 dotenv.config();
 
 const app = express();
@@ -41,6 +42,7 @@ app.use('/api/parents', parentRoutes); // ✅ Parent authentication routes
 app.use('/api', dailyRecordRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/children', childrenRoutes); 
+app.use('/api/teachers', teacherRoutes); // Example: http://localhost:3001/api/teachers
 
 app.use(errorHandler);
 
