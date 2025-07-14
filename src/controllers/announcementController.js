@@ -3,9 +3,12 @@ import * as AnnouncementModel from '../models/announcementModel.js';
 // Create a new announcement
 export const create = async (req, res) => {
   try {
-    console.log('Request body:', req.body); // Debug log
-    
-    const { title, details, status, audience, date, user_id } = req.body;
+    console.log('Request body:', req.body); // ✅ Add this
+    console.log('Request files:', req.files); // ✅ Add this
+    console.log('Content-Type:', req.get('Content-Type')); // ✅ Add this
+
+    // Your existing code below:
+    const { title, details, status, audience, date, time } = req.body;
 
     // Validate required fields
     if (!title || !details || !audience) {
@@ -17,9 +20,13 @@ export const create = async (req, res) => {
 
     // Convert audience to number if it's a string
     const audienceNum = Number(audience);
-    
-    // Convert user_id to number if it's a string
-    const userIdNum = user_id ? Number(user_id) : (req.user?.user_id || 1);
+
+    // Always get user_id from authenticated user context
+    const userIdNum = req.user?.user_id || 36; // Use 1 as a fallback for development
+
+    const now = new Date();
+    const announcementDate = date || now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const announcementTime = time || now.toTimeString().split(' ')[0]; // HH:MM:SS
 
     const announcementData = {
       title,
@@ -27,13 +34,13 @@ export const create = async (req, res) => {
       status: status || 'draft',
       audience: audienceNum,
       user_id: userIdNum,
-      date: date || new Date().toISOString().split('T')[0],
+      date: announcementDate,
       session_id: null,
-      time: null,
+      time: announcementTime,
       attachment: null // Handle file uploads separately if needed
     };
 
-    console.log('Announcement data:', announcementData); // Debug log
+    console.log('Announcement data:', announcementData); // Your existing log
 
     const announcement = await AnnouncementModel.createAnnouncement(announcementData);
     
@@ -43,7 +50,9 @@ export const create = async (req, res) => {
       data: announcement
     });
   } catch (error) {
-    console.error('Create announcement error:', error);
+    console.error('Full error object:', error); // ✅ Add this
+    console.error('Error stack:', error.stack); // ✅ Add this
+    console.error('Create announcement error:', error); // Your existing log
     res.status(500).json({
       status: 500,
       message: 'Failed to create announcement',
@@ -99,10 +108,13 @@ export const getById = async (req, res) => {
 // Update an announcement by ID
 export const update = async (req, res) => {
   try {
-    console.log('Update request body:', req.body); // Debug log
-    console.log('Update announcement ID:', req.params.ann_id); // Debug log
-    
-    const { title, details, status, audience } = req.body;
+    console.log('Request body:', req.body); // ✅ Add this
+    console.log('Request files:', req.files); // ✅ Add this
+    console.log('Content-Type:', req.get('Content-Type')); // ✅ Add this
+    console.log('Update request body:', req.body); // Your existing log
+    console.log('Update announcement ID:', req.params.ann_id); // Your existing log
+
+    const { title, details, status, audience, time } = req.body;
 
     // Validate required fields
     if (!title || !details || !audience) {
@@ -120,28 +132,30 @@ export const update = async (req, res) => {
       details,
       status: status || 'draft',
       audience: audienceNum,
-      time: null,
+      time: time || null,
       attachment: null // Handle file uploads separately if needed
     };
 
     console.log('Update data:', updateData); // Debug log
 
     const updated = await AnnouncementModel.updateAnnouncement(req.params.ann_id, updateData);
-    
+
     if (!updated) {
       return res.status(404).json({
         status: 404,
         message: 'Announcement not found'
       });
     }
-    
+
     res.status(200).json({
       status: 200,
       message: 'Announcement updated successfully',
       data: updated
     });
   } catch (error) {
-    console.error('Update announcement error:', error);
+    console.error('Full error object:', error); // ✅ Add this
+    console.error('Error stack:', error.stack); // ✅ Add this
+    console.error('Update announcement error:', error); // Your existing log
     res.status(500).json({
       status: 500,
       message: 'Failed to update announcement',
