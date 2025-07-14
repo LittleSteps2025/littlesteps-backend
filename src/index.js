@@ -16,7 +16,8 @@ import announcementRoutes from './routes/parent/announcementRoutes.js'; // Paren
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://localhost:3001/api/events
 import childrenRoutes from './routes/parent/childrenRoutes.js'; // Children routes
-import teacherRoutes from './routes/teacherRoutes.js'; // Example: http://localhost:3001/api/teachers
+import supervisorRoutes from './routes/supervisorRoutes.js'; // Supervisor routes
+// import teacherRoutes from './routes/teacherRoutes.js'; // Example: http://localhost:3001/api/teachers
 dotenv.config();
 
 const app = express();
@@ -50,7 +51,7 @@ app.use('/api/children', childrenRoutes);
 app.use('/api/teachers', teacherRoutes); // Example: http://localhost:3001/api/teachers
 
 app.use('/api/supervisors', supervisorRoutes);
-app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
+// app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
 
 app.use('/api/announcements', announcementRoutes);
 
