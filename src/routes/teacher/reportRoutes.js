@@ -5,6 +5,10 @@ import { getReports, getReportByChildId, updateArrivalTime,updateStatusFields ,s
 
 const router = express.Router();
 
+
+//localhost:5001/api/routes
+
+
 router.get('/', getReports);
 router.get("/:report_id", getReportByReportId); 
 
