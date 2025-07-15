@@ -10,7 +10,8 @@ import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
 import parentRoutes from './routes/parent/parentRoutes.js';
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 import childRoutes from './routes/child/childRoutes.js'; // Child routes
-
+import eventRoutes from './routes/eventRoutes.js';
+import announcementRoutes from './routes/announcementRoutes.js';
 
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 
@@ -44,6 +45,8 @@ app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervis
 app.use('/api/parents', parentRoutes);
 app.use('/api', dailyRecordRoutes);
 app.use('/api/child', childRoutes); // Child routes
+app.use('/api/events', eventRoutes);
+app.use('/api/announcements', announcementRoutes);
 // Error handling middleware
 app.use(errorHandler);
 
