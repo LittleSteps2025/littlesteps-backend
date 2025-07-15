@@ -2,7 +2,7 @@ import pool from '../../config/db.js'; // adjust path if needed
 
 const EventModel = {
   getAllEvents: async () => {
-    const result = await pool.query('SELECT topic, description, date, time, venue FROM event ORDER BY date ASC');
+    const result = await pool.query('SELECT topic, description, date, time, venue FROM event ORDER BY date DESC');
     return result.rows;
   }
 ,
