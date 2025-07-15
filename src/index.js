@@ -12,10 +12,12 @@ import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 import authRoutes from './routes/authRoutes.js'; // ✅ Auth routes for password reset
 import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
 import announcementRoutes from './routes/parent/announcementRoutes.js'; // Parent announcement routes
-
+import supervisorRoutes from './routes/supervisorRoutes.js'; // Supervisor routes
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://localhost:3001/api/events
 import childrenRoutes from './routes/parent/childrenRoutes.js'; // Children routes
+import viewReportRoutes from './routes/parent/viewReportRoutes.js'; // View report routes
+
 dotenv.config();
 
 const app = express();
@@ -42,7 +44,7 @@ app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api
 app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
 
 app.use('/api/auth', authRoutes); // ✅ Password reset endpoints: /api/auth/forgot-password, etc.
-app.use('/api/parents', parentRoutes); // ✅ Parent authentication routes
+app.use('/api/parent', parentRoutes); // ✅ Parent authentication routes
 app.use('/api', dailyRecordRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/children', childrenRoutes); 
@@ -51,6 +53,7 @@ app.use('/api/supervisors', supervisorRoutes);
 app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
 
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/daily-records', viewReportRoutes);
 
 
 // Error handling middleware
