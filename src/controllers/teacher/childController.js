@@ -96,7 +96,7 @@ export const saveEmergencyNote = async (req, res) => {
 
     // Insert new note into emergencyNote table only
     await pool.query(
-      'INSERT INTO emergencyNote (child_id, teacher_id, note) VALUES ($1, $2, $3)',
+      'INSERT INTO "emergencyNote" (child_id, teacher_id, note) VALUES ($1, $2, $3)',
       [childId, teacherId, emergency_notes]
     );
 
@@ -108,6 +108,61 @@ export const saveEmergencyNote = async (req, res) => {
 };
 
 
+
+
+
+
+export const submitReport = async (req, res) => {
+  const { report_id } = req.params;
+  const { statusUpdates, checkoutPerson, checkoutTime, progress, dailySummary } = req.body;
+  const userId = req.user.userId; // from authenticateUser middleware
+
+  if (!checkoutPerson || !checkoutTime) {
+    return res.status(400).json({ message: 'Checkout person and time are required' });
+  }
+
+  try {
+    // Find teacher_id (or user role ID) from user_id
+    const teacherRes = await pool.query(
+      'SELECT teacher_id FROM teacher WHERE user_id = $1',
+      [userId]
+    );
+
+    if (teacherRes.rows.length === 0) {
+      return res.status(403).json({ message: 'Teacher not found' });
+    }
+
+    const teacherId = teacherRes.rows[0].teacher_id;
+
+    // Example: update report table with submitted data
+    await pool.query(
+      `UPDATE report 
+       SET 
+         status_updates = $1,
+         checkout_person = $2,
+         checkout_time = $3,
+         progress = $4,
+         daily_summary = $5,
+         teacher_id = $6,
+         submitted_at = NOW()
+       WHERE report_id = $7`,
+      [
+        statusUpdates, 
+        checkoutPerson, 
+        checkoutTime, 
+        progress, 
+        dailySummary, 
+        teacherId,
+        report_id,
+      ]
+    );
+
+    res.json({ message: 'Report submitted successfully' });
+  } catch (error) {
+    console.error('Error submitting report:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
 
 
