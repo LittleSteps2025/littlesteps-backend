@@ -95,6 +95,11 @@ export const supervisorAuth = async (req, res) => {
         name: dbUser.name,
         email: dbUser.email,
         role: dbUser.role,
+        address: dbUser.address,
+        phone: dbUser.phone,
+        image: dbUser.image,
+        nic: dbUser.nic,
+        cv: cv || null,
         status: dbUser.status,
         created_at: dbUser.created_at
       }
