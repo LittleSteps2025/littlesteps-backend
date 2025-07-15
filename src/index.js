@@ -53,7 +53,7 @@ app.use('/api/children', childrenRoutes);
 app.use('/api/teachers', teacherRoutes); // Example: http://localhost:3001/api/teachers
 
 app.use('/api/supervisors', supervisorRoutes);
-app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
+// app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
 
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/daily-records', viewReportRoutes);
