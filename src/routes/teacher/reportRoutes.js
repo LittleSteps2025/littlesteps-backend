@@ -2,6 +2,11 @@
 
 import express from 'express';
 import { getReports, getReportByChildId, updateArrivalTime,updateStatusFields ,submitReport,getReportByReportId} from '../../controllers/teacher/reportController.js';
+// import authenticateUser from '../../middlewares/firebaseAuthMiddleware.js';
+import authenticateUser from '../../middlewares/firebaseAuthMiddleware.js';
+
+
+
 
 const router = express.Router();
 
@@ -21,7 +26,9 @@ router.put('/child/:report_id/status', updateStatusFields);
 // router.put('/:report_id/submit', submitReport);
 
 
-router.put("/:report_id/submit", submitReport);
+// router.put("/:report_id/submit", submitReport);
+// router.put("/:report_id/submit", authenticateUser, submitReport);
+router.put('/:report_id/submit', authenticateUser, submitReport);
 
 
 
