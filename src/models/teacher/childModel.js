@@ -44,7 +44,9 @@ const ChildModel = {
 async getChildById(childId) {
   const query = `
     SELECT 
-      c.*, 
+      c.*,
+        TO_CHAR(c.dob, 'YYYY-MM-DD') AS dob,
+
       g.name AS group_name,
       u.name AS parent_name,
       u.phone AS parent_phone,
@@ -59,6 +61,11 @@ async getChildById(childId) {
   const result = await pool.query(query, [childId]);
   return result.rows[0];
 },
+
+
+
+
+
 
 
   // ✅ Update emergency notes
