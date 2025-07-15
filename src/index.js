@@ -8,7 +8,11 @@ import errorHandler from './middlewares/errorHandler.js';
 import childRoutes from './routes/child/childRoutes.js'; // Child routes
 // import createPasswordResetTables from './data/createPasswordResetTables.js';
 import parentRoutes from './routes/parentRoutes.js'; // ✅ Parent authentication routes
+import authRoutes from './routes/authRoutes.js'; // ✅ Auth routes for password reset
+import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
+
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
+import childRoutes from './routes/child/childRoutes.js'; // Child routes
 import authRoutes from './routes/authRoutes.js'; // ✅ Auth routes for password reset
 import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
 import announcementRoutes from './routes/parent/announcementRoutes.js'; // Parent announcement routes
