@@ -12,7 +12,6 @@ import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 import authRoutes from './routes/authRoutes.js'; // ✅ Auth routes for password reset
 import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
 import announcementRoutes from './routes/parent/announcementRoutes.js'; // Parent announcement routes
-import supervisorRoutes from './routes/supervisorRoutes.js'; // Supervisor routes
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://localhost:3001/api/events
 import childrenRoutes from './routes/parent/childrenRoutes.js'; // Children routes
