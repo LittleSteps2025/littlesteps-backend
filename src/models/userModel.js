@@ -127,28 +127,37 @@ export const getUserByIdService = async (id) => {
 };
 
 // Get all users including role-specific info
+// export const getAllUsersService = async () => {
+//   const result = await pool.query(`
+//     SELECT 
+//       u.user_id AS id,
+//       u.nic,
+//       u.name,
+//       u.address,
+//       u.email,
+//       u.phone,
+//       u.image,
+//       u.role,
+//       u.status,
+//       u.created_at,
+//       COALESCE(p.verified, false) AS parent_verified,
+//       COALESCE(t.subjects, '') AS teacher_subjects,
+//       COALESCE(s.department, '') AS supervisor_department
+//     FROM "user" u
+//     LEFT JOIN parent p ON u.user_id = p.user_id
+//     LEFT JOIN teacher t ON u.user_id = t.user_id
+//     LEFT JOIN supervisor s ON u.user_id = s.user_id
+//     ORDER BY u.created_at DESC
+//   `);
+//   return result.rows;
+// };
 export const getAllUsersService = async () => {
-  const result = await pool.query(`
-    SELECT 
-      u.user_id AS id,
-      u.nic,
-      u.name,
-      u.address,
-      u.email,
-      u.phone,
-      u.image,
-      u.role,
-      u.status,
-      u.created_at,
-      COALESCE(p.verified, false) AS parent_verified,
-      COALESCE(t.subjects, '') AS teacher_subjects,
-      COALESCE(s.department, '') AS supervisor_department
-    FROM "user" u
-    LEFT JOIN parent p ON u.user_id = p.user_id
-    LEFT JOIN teacher t ON u.user_id = t.user_id
-    LEFT JOIN supervisor s ON u.user_id = s.user_id
-    ORDER BY u.created_at DESC
-  `);
+  const result = await pool.query(
+    `SELECT u.*, p.verified, p.token 
+     FROM "user" u 
+     LEFT JOIN parent p ON u.user_id = p.user_id 
+     ORDER BY u.created_at DESC`
+  );
   return result.rows;
 };
 
