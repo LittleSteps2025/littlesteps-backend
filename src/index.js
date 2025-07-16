@@ -6,7 +6,7 @@ import userRoutes from './routes/userRoutes.js'; // User routes
 import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes (corrected path)
 import errorHandler from './middlewares/errorHandler.js';
 
-import announcementRoutes from './routes/announcementRoute.js'; // Announcement routes
+import announcementsRoutes from './routes/announcementsRoute.js'; // Announcement routes
 
 
 // import createPasswordResetTables from './data/createPasswordResetTables.js';
@@ -56,7 +56,7 @@ app.use('/api/auth', authRoutes); // ✅ Password reset endpoints: /api/auth/for
 app.use('/api/parent', parentRoutes); // ✅ Parent authentication routes
 app.use('/api', dailyRecordRoutes);
 
-//app.use('/api/announcements', announcementRoutes); // Announcement routes
+app.use('/api/announcement', announcementsRoutes); // Announcement routes
 
 app.use('/api/events', eventRoutes);
 app.use('/api/children', childrenRoutes); 
