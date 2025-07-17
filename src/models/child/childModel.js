@@ -14,6 +14,14 @@ class ChildModel {
     return rows;
   }
 
+  async checkParentByNIC(nic) {
+    const query = `
+      SELECT * FROM "user" WHERE nic = $1 AND role = 'parent'
+    `;
+    const { rows } = await pool.query(query, [nic]);
+    return rows[0];
+  }
+
   async findById(child_id) {
     // Join child, parent, and user tables for single child
     const query = `
