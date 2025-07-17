@@ -5,7 +5,7 @@ import pool from './config/db.js';
 import userRoutes from './routes/userRoutes.js'; // User routes
 import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes (corrected path)
 import errorHandler from './middlewares/errorHandler.js';
-
+import childSupervisorRoutes from './routes/child/childRoutes.js'
 import announcementsRoutes from './routes/announcementsRoute.js'; // Announcement routes
 
 
@@ -64,7 +64,7 @@ app.use('/api/teachers', teacherRoutes); // Example: http://localhost:3001/api/t
 app.use('/api/child', childRoutes);
 app.use('/api/supervisors', supervisorRoutes);
 // app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
-
+app.use('/api/supervisors/child', childSupervisorRoutes); // Supervisor child routes
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/daily-records', viewReportRoutes);
 
