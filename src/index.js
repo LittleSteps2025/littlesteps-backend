@@ -7,7 +7,7 @@ import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report route
 import errorHandler from './middlewares/errorHandler.js';
 import childSupervisorRoutes from './routes/child/childRoutes.js'
 import announcementsRoutes from './routes/announcementsRoute.js'; // Announcement routes
-
+import supervisorEventRoutes from './routes/eventRoutes.js'; // Supervisor event routes
 
 // import createPasswordResetTables from './data/createPasswordResetTables.js';
 import parentRoutes from './routes/parentRoutes.js'; // ✅ Parent authentication routes
@@ -57,7 +57,7 @@ app.use('/api/parent', parentRoutes); // ✅ Parent authentication routes
 app.use('/api', dailyRecordRoutes);
 
 app.use('/api/announcement', announcementsRoutes); // Announcement routes
-
+app.use('/api/supervisor/events', supervisorEventRoutes); // Supervisor event routes
 app.use('/api/events', eventRoutes);
 app.use('/api/children', childrenRoutes); 
 app.use('/api/teachers', teacherRoutes); // Example: http://localhost:3001/api/teachers
