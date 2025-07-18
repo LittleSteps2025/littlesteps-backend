@@ -5,6 +5,9 @@ import pool from './config/db.js';
 import userRoutes from './routes/userRoutes.js'; // User routes
 import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes (corrected path)
 import errorHandler from './middlewares/errorHandler.js';
+import childSupervisorRoutes from './routes/child/childRoutes.js'
+import announcementsRoutes from './routes/announcementsRoute.js'; // Announcement routes
+import supervisorEventRoutes from './routes/eventRoutes.js'; // Supervisor event routes
 
 // import createPasswordResetTables from './data/createPasswordResetTables.js';
 import parentRoutes from './routes/parentRoutes.js'; // ✅ Parent authentication routes
@@ -17,6 +20,7 @@ import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://lo
 import childrenRoutes from './routes/parent/childrenRoutes.js'; // Children routes
 import supervisorRoutes from './routes/supervisorRoutes.js'; // Supervisor routes
 import childRoutes from './routes/teacher/childRoutes.js'; // Child routes for teachers
+
 
 
 
@@ -44,25 +48,29 @@ app.use(cors());
 //Testing POSTGRES connection
 
 // Routes
-app.use('/api/users', userRoutes); // Example: http://localhost:3001/api/users
+app.use('/api/users', userRoutes); // User routes
 app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api/reports
 app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
 
 app.use('/api/auth', authRoutes); // ✅ Password reset endpoints: /api/auth/forgot-password, etc.
 app.use('/api/parent', parentRoutes); // ✅ Parent authentication routes
 app.use('/api', dailyRecordRoutes);
+
+app.use('/api/announcement', announcementsRoutes); // Announcement routes
+app.use('/api/supervisor/events', supervisorEventRoutes); // Supervisor event routes
 app.use('/api/events', eventRoutes);
 app.use('/api/children', childrenRoutes); 
 app.use('/api/teachers', teacherRoutes); // Example: http://localhost:3001/api/teachers
 app.use('/api/child', childRoutes);
 app.use('/api/supervisors', supervisorRoutes);
 // app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
-
+app.use('/api/supervisors/child', childSupervisorRoutes); // Supervisor child routes
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/daily-records', viewReportRoutes);
 
 
 // Error handling middlewareapp.use('/api/child', childRoutes);
+
 
 app.use(errorHandler);
 
