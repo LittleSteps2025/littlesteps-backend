@@ -15,7 +15,7 @@ const dailyRecordController = {
 
     const dailyRecordData = {
       child_id,
-      date: date || new Date().toISOString().slice(0, 10), // Use provided date or default to current date
+      create_date: date || new Date().toISOString().slice(0, 10), // Use provided date or default to current date
       breakfirst: breakfirst || '',
       morning_snack: morning_snack || '',
       lunch: lunch || '',
