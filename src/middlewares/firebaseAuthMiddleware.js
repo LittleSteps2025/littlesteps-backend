@@ -12,7 +12,7 @@ import pool from '../config/db.js'; // Use .js extension for ES modules
 
 
 //chek mekata emergency notes wedada kiyla
-import serviceAccount from '../../firebaseServiceAccount.json' assert { type: 'json' };
+import serviceAccount from '../../firebaseServiceAccount.json' with { type: 'json' };
 
 
 if (!admin.apps.length) {
