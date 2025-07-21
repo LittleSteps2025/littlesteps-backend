@@ -22,7 +22,7 @@ export const create = async (req, res) => {
     const audienceNum = Number(audience);
 
     // Always get user_id from authenticated user context
-    const userIdNum = req.user?.user_id || 36; // Use 1 as a fallback for development
+    const userIdNum = req.user?.user_id || 14; // Use 1 as a fallback for development
 
     const now = new Date();
     const announcementDate = date || now.toISOString().split('T')[0]; // YYYY-MM-DD
