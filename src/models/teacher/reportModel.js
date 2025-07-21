@@ -4,16 +4,28 @@ import pool from "../../config/db.js"; // your PostgreSQL DB pool
 const ReportModel = {
   getReportsByDate: async (date) => {
     const result = await pool.query(
-      `
-      SELECT 
-        report.*,
-        child.name AS child_name,
-        child.age As child_age,
-        child.group_id as child_group 
-      FROM report
-      JOIN child ON report."child_id" = child.child_id
-      WHERE DATE(report.create_date) = $1
-    `,
+    //   `
+    //   SELECT 
+    //     report.*,
+    //     child.name AS child_name,
+    //     child.age As child_age,
+    //     child.group_id as child_group 
+    //   FROM report
+    //   JOIN child ON report."child_id" = child.child_id
+    //   WHERE DATE(report.create_date) = $1
+    // `,
+
+    `SELECT  
+    report.*,  
+    child.name AS child_name,  
+    child.age AS child_age,  
+    child.group_id AS child_group_id,  
+    "group".name AS group_name  
+FROM report  
+JOIN child ON report.child_id = child.child_id  
+JOIN "group" ON child.group_id = "group".group_id  
+WHERE DATE(report.create_date) = $1;
+`,
       [date]
     );
     return result.rows;
@@ -65,6 +77,14 @@ const ReportModel = {
     const result = await pool.query(query, [report_id]);
     return result.rows[0]; // return one combined report with child info
   },
+
+
+
+
+
+
+
+
 
   updateArrivalTime: async (report_id, arrived_time) => {
     const result = await pool.query(

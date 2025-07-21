@@ -6,7 +6,7 @@ const ChildModel = {
   // ✅ Get children by filters (group, package, month)
   async getFilteredChildren(group = 'all', pkg = 'all', month) {
     let query = `
-      SELECT DISTINCT ON (c.child_id)
+      SELECT DISTINCT ON(c.child_id)
         c.child_id AS id,
         c.name,
         c.age,
