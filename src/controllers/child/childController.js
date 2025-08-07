@@ -139,22 +139,28 @@ class ChildController {
 
       // Handle specific database errors
       if (error.code === "23505") {
-        // Unique constraint violation
-        return res.status(409).json({
-          message: "A user with this NIC or email already exists",
-        });
+        // Unique constraint violation - check which field is duplicated
+        if (error.detail && error.detail.includes("email")) {
+          return res.status(409).json({
+            message: "This email address is already registered",
+            field: "parentEmail",
+            errorType: "duplicate_email"
+          });
+        }
       }
 
       if (error.code === "23503") {
         // Foreign key constraint violation
         return res.status(400).json({
           message: "Invalid group_id or parent_id reference",
+          errorType: "foreign_key_violation"
         });
       }
 
       res.status(500).json({
         message: "Error creating child",
         error: error.message,
+        errorType: "server_error"
       });
     }
   }
