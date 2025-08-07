@@ -5,7 +5,7 @@ import { getAllParents } from "../../models/parent/parentModel.js";
 import { sendParentVerificationEmail } from "../../services/emailService.js";
 import { pool } from "../../config/db.js";
 import bcrypt from "bcrypt";
-import crypto from "crypto";
+
 
 // Helper function to generate 4-digit verification code
 const generateVerificationCode = () => {
