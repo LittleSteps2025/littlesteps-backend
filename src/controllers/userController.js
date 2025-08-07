@@ -87,22 +87,62 @@ export const checkEmail = async (req, res) => {
 };
 
 export const verifyToken = async (req, res) => {
-  console.log('Verifying token:', req.body);
+  console.log('Verifying parent token:', req.body);
   try {
     const { email, token, password } = req.body;
-    const verification = await getVerificationToken(email, token);
-    console.log('Verification result:', verification);
-    
-    if (verification === false) {
-      console.log(`Invalid or expired token for email: ${email}`);
-      return handleResponse(res, 400, 'Invalid or expired token');
+
+    // Validate input
+    if (!email || !token || !password) {
+      return handleResponse(res, 400, 'Email, token, and password are required');
     }
-    // When creating a user with password
-    const hashedPassword = await bcrypt.hash(password, 12); // 12 salt rounds
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return handleResponse(res, 400, 'Invalid email format');
+    }
+
+    // Validate password strength
+    if (password.length < 6) {
+      return handleResponse(res, 400, 'Password must be at least 6 characters long');
+    }
+
+    // Check if user exists and has a token
+    const user = await checkEmailExists(email);
+    if (!user || !user.email) {
+      console.log(`Email not found: ${email}`);
+      return handleResponse(res, 404, 'Email not registered');
+    }
+
+    if (!user.token) {
+      console.log(`No verification token found for email: ${email}`);
+      return handleResponse(res, 400, 'No verification token found. Please request a new verification code.');
+    }
+
+    if (user.verified) {
+      console.log(`Email already verified: ${email}`);
+      return handleResponse(res, 400, 'Email is already verified');
+    }
+
+    // Use bcrypt.compare to verify the plain token against the stored hash
+    const isTokenValid = await bcrypt.compare(token.toString(), user.token);
+    console.log('Token verification result:', isTokenValid);
+    
+    if (!isTokenValid) {
+      console.log(`Invalid token for email: ${email}`);
+      return handleResponse(res, 400, 'Invalid verification code');
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(password, 12);
+    
+    // Mark email as verified and set password
     await markEmailAsVerified(email, hashedPassword);
-    handleResponse(res, 200, 'Email verified successfully');
+    
+    handleResponse(res, 200, 'Parent verification successful. You can now sign in with your email and password.');
 
   } catch (error) {
+    console.error('Token verification error:', error);
     handleResponse(res, 500, 'Server error', error.message);
   }
 };
