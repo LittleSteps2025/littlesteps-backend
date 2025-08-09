@@ -1,7 +1,41 @@
 // File: controllers/child/childController.js
 import childModel from "../../models/child/childModel.js";
 import { getParentByNic } from "../../models/supervisorModel.js";
-import { getAllParents } from "../../models/parent/parentModel.js"; 
+import { getAllParents } from "../../models/parent/parentModel.js";
+import { sendParentVerificationEmail } from "../../services/emailService.js";
+import { pool } from "../../config/db.js";
+import bcrypt from "bcrypt";
+
+
+// Helper function to generate 4-digit verification code
+const generateVerificationCode = () => {
+  return Math.floor(1000 + Math.random() * 9000).toString(); // Generates 4-digit code
+};
+
+// Helper function to hash the verification code
+const hashVerificationCode = async (code) => {
+  const saltRounds = 12;
+  return await bcrypt.hash(code, saltRounds);
+};
+
+// Helper function to update parent token in database
+const updateParentToken = async (parentId, hashedToken) => {
+  const query = `
+    UPDATE parent 
+    SET token = $1, updated_at = CURRENT_TIMESTAMP 
+    WHERE parent_id = $2 
+    RETURNING parent_id;
+  `;
+  
+  try {
+    const result = await pool.query(query, [hashedToken, parentId]);
+    return result.rows[0];
+  } catch (error) {
+    console.error("Error updating parent token:", error);
+    throw error;
+  }
+};
+
 class ChildController {
   async getAll(req, res) {
     try {
@@ -125,13 +159,38 @@ class ChildController {
           });
         }
 
+        // Generate 4-digit verification code
+        const verificationCode = generateVerificationCode();
+        console.log("Generated verification code:", verificationCode);
+
+        // Hash the verification code
+        const hashedToken = await hashVerificationCode(verificationCode);
+
         // Create new parent and child
         const newChild = await childModel.create(childData);
         console.log("Created child:", newChild);
 
+        // Update parent token with hashed verification code
+        await updateParentToken(newChild.parent_id, hashedToken);
+
+        // Send verification code email to parent
+        try {
+          await sendParentVerificationEmail(
+            childData.parentEmail, 
+            verificationCode, 
+            childData.parentName
+          );
+          console.log("Verification email sent successfully to:", childData.parentEmail);
+        } catch (emailError) {
+          console.error("Error sending verification email:", emailError);
+          // Don't fail the entire operation if email fails
+          // Just log the error and continue
+        }
+
         return res.status(201).json({
-          message: "New parent and child created successfully",
-          child: newChild
+          message: "New parent and child created successfully. A 4-digit verification code has been sent to the parent's email.",
+          child: newChild,
+          emailSent: true
         });
       }
     } catch (error) {
@@ -139,22 +198,28 @@ class ChildController {
 
       // Handle specific database errors
       if (error.code === "23505") {
-        // Unique constraint violation
-        return res.status(409).json({
-          message: "A user with this NIC or email already exists",
-        });
+        // Unique constraint violation - check which field is duplicated
+        if (error.detail && error.detail.includes("email")) {
+          return res.status(409).json({
+            message: "This email address is already registered",
+            field: "parentEmail",
+            errorType: "duplicate_email"
+          });
+        }
       }
 
       if (error.code === "23503") {
         // Foreign key constraint violation
         return res.status(400).json({
           message: "Invalid group_id or parent_id reference",
+          errorType: "foreign_key_violation"
         });
       }
 
       res.status(500).json({
         message: "Error creating child",
         error: error.message,
+        errorType: "server_error"
       });
     }
   }
