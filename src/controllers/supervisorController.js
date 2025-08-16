@@ -1,6 +1,7 @@
 import admin from "firebase-admin";
 import credentials from "../../firebaseServiceAccount.json" with { type: 'json' };
 import pool from '../config/db.js';
+import bcrypt from 'bcrypt';
 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
@@ -385,5 +386,107 @@ export const adminAuth = async (req, res) => {
     });
   } finally {
     client.release();
+  }
+};
+
+// Password change function for authenticated users (supervisors/admins)
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user?.userId; // From JWT token middleware
+    const email = req.user?.email; // From JWT token middleware
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password and new password are required'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters long'
+      });
+    }
+
+    // Get user details from database
+    const userResult = await pool.query(
+      'SELECT * FROM "user" WHERE user_id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    // Verify current password with Firebase
+    const firebaseApiKey = process.env.FIREBASE_API_KEY;
+    
+    if (!firebaseApiKey) {
+      console.error('FIREBASE_API_KEY not found in environment variables');
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error'
+      });
+    }
+
+    try {
+      // Verify current password using Firebase Web API
+      const firebaseResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: user.email,
+          password: currentPassword,
+          returnSecureToken: true
+        })
+      });
+
+      const firebaseData = await firebaseResponse.json();
+
+      if (!firebaseResponse.ok) {
+        return res.status(400).json({
+          success: false,
+          message: 'Current password is incorrect'
+        });
+      }
+
+      // Update password in Firebase using Admin SDK
+      const firebaseUser = await admin.auth().getUserByEmail(user.email);
+      await admin.auth().updateUser(firebaseUser.uid, {
+        password: newPassword
+      });
+
+      console.log(`✅ Password changed successfully for user: ${user.email}`);
+
+      res.json({
+        success: true,
+        message: 'Password changed successfully'
+      });
+
+    } catch (authError) {
+      console.error('Firebase password change failed:', authError);
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Password change error:', error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Password change failed',
+      error: error.message
+    });
   }
 };
