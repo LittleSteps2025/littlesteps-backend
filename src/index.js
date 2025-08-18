@@ -6,6 +6,7 @@ import userRoutes from './routes/userRoutes.js'; // User routes
 import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes (corrected path)
 import errorHandler from './middlewares/errorHandler.js';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
 import parentRoutes from './routes/parent/parentRoutes.js';
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
@@ -17,13 +18,23 @@ import childSupervisorRoutes from './routes/child/childRoutes.js'
 import announcementsRoutes from './routes/announcementsRoute.js'; // Announcement routes
 import supervisorEventRoutes from './routes/eventRoutes.js'; // Supervisor event routes
 
+=======
+
+import announcementsRoutes from './routes/announcementsRoute.js'; // Announcement routes
+
+import parentsRoutes from './routes/parent/parentRoutes.js';
+>>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
 // import createPasswordResetTables from './data/createPasswordResetTables.js';
 import parentRoutes from './routes/parentRoutes.js'; // ✅ Parent authentication routes
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
+import childRoutesChathu from './routes/child/childRoutes.js'; // Child routes
 import authRoutes from './routes/authRoutes.js'; // ✅ Auth routes for password reset
 import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
 import announcementRoutes from './routes/parent/announcementRoutes.js'; // Parent announcement routes
+<<<<<<< HEAD
 >>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
+=======
+>>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://localhost:3001/api/events
 import childrenRoutes from './routes/parent/childrenRoutes.js'; // Children routes
@@ -61,6 +72,7 @@ app.use('/api/users', userRoutes); // User routes
 app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api/reports
 app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
 <<<<<<< HEAD
+<<<<<<< HEAD
 app.use('/api/supervisors', supervisorRoutes); // ✅ Supervisor and Admin routes
 app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
 app.use('/api/parents', parentRoutes);
@@ -68,10 +80,14 @@ app.use('/api', dailyRecordRoutes);
 app.use('/api/child', childRoutes); // Child routes
 // Error handling middleware
 =======
+=======
+>>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
 
 app.use('/api/auth', authRoutes); // ✅ Password reset endpoints: /api/auth/forgot-password, etc.
 app.use('/api/parent', parentRoutes); // ✅ Parent authentication routes
+app.use('/api/parents', parentsRoutes);
 app.use('/api', dailyRecordRoutes);
+app.use('/api/child', childRoutesChathu); // Child routes
 
 app.use('/api/announcement', announcementsRoutes); // Announcement routes
 app.use('/api/supervisor/events', supervisorEventRoutes); // Supervisor event routes
@@ -89,7 +105,10 @@ app.use('/api/daily-records', viewReportRoutes);
 // Error handling middlewareapp.use('/api/child', childRoutes);
 
 
+<<<<<<< HEAD
 >>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
+=======
+>>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
 app.use(errorHandler);
 
 // Create password reset tables

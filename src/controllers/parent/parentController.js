@@ -2,14 +2,21 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../../config/db.js';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import ParentModel from '../../models/parent/parentModel.js';   
 =======
+=======
+>>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
 import { getVerifiedParentByEmail } from '../../models/parent/parentModel.js';
 
 const handleResponse = (res, status, message, data = null) => {
   res.status(status).json({ status, message, data });
 };
+<<<<<<< HEAD
 >>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
+=======
+import ParentModel from '../../models/parent/parentModel.js';   
+>>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -157,6 +164,27 @@ export const verifyParentToken = async (req, res, next) => {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+export const checkVerifiedParent = async (req, res, next) => {
+  console.log('Checking if parent is verified:', req.body);
+  try{
+    const {email} = req.body;
+    const query = await getVerifiedParentByEmail(email);
+
+    if(query){
+      return handleResponse(res, 200, 'Parent is verified', {verified: true});
+    } else {
+      return handleResponse(res, 403, 'Parent is not verified', {verified: false});
+    }
+  }catch (error) {
+    console.error('Error checking verified parent:', error);
+    return handleResponse(res, 500, 'Server error', {error: 'SERVER_ERROR'});
+  }
+};
+
+
+>>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
 export const getAll = async (req, res) => {
   try {
     const query = `
@@ -384,6 +412,7 @@ export const deleteParent = async (req, res) => {
     });
   }
 };
+<<<<<<< HEAD
 =======
 export const checkVerifiedParent = async (req, res, next) => {
   console.log('Checking if parent is verified:', req.body);
@@ -403,3 +432,5 @@ export const checkVerifiedParent = async (req, res, next) => {
 };
 
 >>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
+=======
+>>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
