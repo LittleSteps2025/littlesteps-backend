@@ -20,7 +20,7 @@ const dailyRecordController = {
       morning_snack: morning_snack || '',
       lunch: lunch || '',
       evening_snack: evening_snack || '',
-      medicine: medicine || '',
+      medicine: medicine ? true : false, // Convert to boolean
       special_note: special_note || '',
     };
 
