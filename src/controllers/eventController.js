@@ -1,4 +1,5 @@
 import eventModel from '../models/eventModel.js';
+import pool from '../config/db.js';
 
 const eventController = {
   async getAll(req, res, next) {
@@ -29,14 +30,67 @@ const eventController = {
     try {
       const { user_id, image, date, time, description, topic, venue } = req.body;
       
-      if (!user_id || !date || !time || !description || !topic || !venue) {
+      if (!date || !time || !description || !topic || !venue) {
         return res.status(400).json({ 
-          message: 'All fields are required except image' 
+          message: 'Date, time, description, topic, and venue are required' 
         });
       }
 
+      // Find a valid user_id for development
+      let userIdNum = user_id;
+      
+      if (!userIdNum) {
+        // Get the first available user from database
+        console.log('🔍 Looking for available users...');
+        const { rows } = await pool.query('SELECT user_id, name, email, role FROM "user" ORDER BY user_id LIMIT 3');
+        console.log('📋 Found users:', rows);
+        console.log('📋 First user details:', rows[0]);
+        
+        if (rows.length > 0) {
+          userIdNum = rows[0].user_id;
+          console.log('✅ Using user_id:', userIdNum, 'Type:', typeof userIdNum);
+        } else {
+          console.log('❌ No users found in database, creating test user...');
+          
+          // Create a test user for development
+          const { rows: newUser } = await pool.query(`
+            INSERT INTO "user" (name, email, role, nic, status, created_at) 
+            VALUES ('System Admin', 'admin@littlesteps.com', 'admin', '999999999V', 'active', NOW()) 
+            RETURNING user_id, name, email
+          `);
+          
+          userIdNum = newUser[0].user_id;
+          console.log('✅ Created test user:', newUser[0]);
+          console.log('✅ Created test user with ID:', userIdNum, 'Type:', typeof userIdNum);
+        }
+      }
+
+      // Validate that the user_id actually exists
+      console.log('🔄 Validating user_id:', userIdNum, 'Type:', typeof userIdNum);
+      const { rows: userCheck } = await pool.query('SELECT user_id, name, email FROM "user" WHERE user_id = $1', [userIdNum]);
+      console.log('🔍 Validation query result:', userCheck);
+      
+      if (userCheck.length === 0) {
+        console.log('❌ User ID does not exist:', userIdNum);
+        
+        // Let's see all users to debug
+        const { rows: allUsers } = await pool.query('SELECT user_id, name, email FROM "user" LIMIT 5');
+        console.log('📋 All users in database:', allUsers);
+        
+        return res.status(400).json({ 
+          message: `User ID ${userIdNum} does not exist in database.`,
+          debug: { 
+            searchedUserId: userIdNum, 
+            userIdType: typeof userIdNum,
+            allUsers: allUsers 
+          }
+        });
+      }
+      
+      console.log('✅ User ID validated:', userIdNum);
+
       const newEvent = await eventModel.create({ 
-        user_id, 
+        user_id: userIdNum, 
         image: image || null, 
         date,
         time,
