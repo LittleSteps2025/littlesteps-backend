@@ -1,7 +1,15 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../../config/db.js';
+<<<<<<< HEAD
 import ParentModel from '../../models/parent/parentModel.js';   
+=======
+import { getVerifiedParentByEmail } from '../../models/parent/parentModel.js';
+
+const handleResponse = (res, status, message, data = null) => {
+  res.status(status).json({ status, message, data });
+};
+>>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -148,6 +156,7 @@ export const verifyParentToken = async (req, res, next) => {
   }
 };
 
+<<<<<<< HEAD
 export const getAll = async (req, res) => {
   try {
     const query = `
@@ -375,3 +384,22 @@ export const deleteParent = async (req, res) => {
     });
   }
 };
+=======
+export const checkVerifiedParent = async (req, res, next) => {
+  console.log('Checking if parent is verified:', req.body);
+  try{
+    const {email} = req.body;
+    const query = await getVerifiedParentByEmail(email);
+
+    if(query){
+      return handleResponse(res, 200, 'Parent is verified', {verified: true});
+    } else {
+      return handleResponse(res, 403, 'Parent is not verified', {verified: false});
+    }
+  }catch (error) {
+    console.error('Error checking verified parent:', error);
+    return handleResponse(res, 500, 'Server error', {error: 'SERVER_ERROR'});
+  }
+};
+
+>>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
