@@ -2,50 +2,31 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import pool from './config/db.js';
-import userRoutes from './routes/userRoutes.js'; // User routes
-import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes (corrected path)
 import errorHandler from './middlewares/errorHandler.js';
-<<<<<<< HEAD
-<<<<<<< HEAD
-import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
+
+// Core Routes
+import userRoutes from './routes/userRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+
+// Teacher Routes
+import teacherRoutes from './routes/teacherRoutes.js';
+import reportRoutes from './routes/teacher/reportRoutes.js';
+import guardianRoutes from './routes/teacher/guardianRoutes.js';
+import teacherChildRoutes from './routes/teacher/childRoutes.js';
+import eventRoutes from './routes/teacher/eventRoutes.js';
+
+// Parent Routes
 import parentRoutes from './routes/parent/parentRoutes.js';
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
-import childRoutes from './routes/child/childRoutes.js'; // Child routes
+import announcementRoutes from './routes/parent/announcementRoutes.js';
+import childrenRoutes from './routes/parent/childrenRoutes.js';
+import viewReportRoutes from './routes/parent/viewReportRoutes.js';
 
-
-=======
-import childSupervisorRoutes from './routes/child/childRoutes.js'
-import announcementsRoutes from './routes/announcementsRoute.js'; // Announcement routes
-import supervisorEventRoutes from './routes/eventRoutes.js'; // Supervisor event routes
-
-=======
-
-import announcementsRoutes from './routes/announcementsRoute.js'; // Announcement routes
-
-import parentsRoutes from './routes/parent/parentRoutes.js';
->>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
-// import createPasswordResetTables from './data/createPasswordResetTables.js';
-import parentRoutes from './routes/parentRoutes.js'; // ✅ Parent authentication routes
-import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
-import childRoutesChathu from './routes/child/childRoutes.js'; // Child routes
-import authRoutes from './routes/authRoutes.js'; // ✅ Auth routes for password reset
-import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
-import announcementRoutes from './routes/parent/announcementRoutes.js'; // Parent announcement routes
-<<<<<<< HEAD
->>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
-=======
->>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
-import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
-import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://localhost:3001/api/events
-import childrenRoutes from './routes/parent/childrenRoutes.js'; // Children routes
-import supervisorRoutes from './routes/supervisorRoutes.js'; // Supervisor routes
-import childRoutes from './routes/teacher/childRoutes.js'; // Child routes for teachers
-
-
-
-
-import viewReportRoutes from './routes/parent/viewReportRoutes.js'; // View report routes
-// import teacherRoutes from './routes/teacherRoutes.js'; 
+// Supervisor Routes
+import supervisorRoutes from './routes/supervisorRoutes.js';
+import childSupervisorRoutes from './routes/child/childRoutes.js';
+import supervisorEventRoutes from './routes/eventRoutes.js';
+import announcementsRoutes from './routes/announcementsRoute.js'; 
 
 dotenv.config();
 
@@ -57,58 +38,31 @@ app.use(express.json());
 app.use(cors());
 
 
-//Routes
+// Core Routes
+app.use('/api/users', userRoutes);
+app.use('/api/auth', authRoutes);
 
-// app.use('/api', dailyRecordRoutes);
-
-//Error handling middleware 
-// app.use(errorHandler)
-// //create table before starting the server
-// createUserTable();                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
-//Testing POSTGRES connection
-
-// Routes
-app.use('/api/users', userRoutes); // User routes
-app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api/reports
-app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
-<<<<<<< HEAD
-<<<<<<< HEAD
-app.use('/api/supervisors', supervisorRoutes); // ✅ Supervisor and Admin routes
-app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
-app.use('/api/parents', parentRoutes);
-app.use('/api', dailyRecordRoutes);
-app.use('/api/child', childRoutes); // Child routes
-// Error handling middleware
-=======
-=======
->>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
-
-app.use('/api/auth', authRoutes); // ✅ Password reset endpoints: /api/auth/forgot-password, etc.
-app.use('/api/parent', parentRoutes); // ✅ Parent authentication routes
-app.use('/api/parents', parentsRoutes);
-app.use('/api', dailyRecordRoutes);
-app.use('/api/child', childRoutesChathu); // Child routes
-
-app.use('/api/announcement', announcementsRoutes); // Announcement routes
-app.use('/api/supervisor/events', supervisorEventRoutes); // Supervisor event routes
+// Teacher Routes
+app.use('/api/teachers', teacherRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/guardians', guardianRoutes);
+app.use('/api/teachers/child', teacherChildRoutes);
 app.use('/api/events', eventRoutes);
-app.use('/api/children', childrenRoutes); 
-app.use('/api/teachers', teacherRoutes); // Example: http://localhost:3001/api/teachers
-app.use('/api/child', childRoutes);
+
+// Parent Routes
+app.use('/api/parents', parentRoutes);
+app.use('/api/daily-records', dailyRecordRoutes);
+app.use('/api/parent/announcements', announcementRoutes);
+app.use('/api/parent/children', childrenRoutes);
+app.use('/api/parent/reports', viewReportRoutes);
+
+// Supervisor Routes
 app.use('/api/supervisors', supervisorRoutes);
-// app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
-app.use('/api/supervisors/child', childSupervisorRoutes); // Supervisor child routes
-app.use('/api/announcements', announcementRoutes);
-app.use('/api/daily-records', viewReportRoutes);
+app.use('/api/supervisors/child', childSupervisorRoutes);
+app.use('/api/supervisor/events', supervisorEventRoutes);
+app.use('/api/announcements', announcementsRoutes);
 
-
-// Error handling middlewareapp.use('/api/child', childRoutes);
-
-
-<<<<<<< HEAD
->>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
-=======
->>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
+// Error handling middleware
 app.use(errorHandler);
 
 // Create password reset tables

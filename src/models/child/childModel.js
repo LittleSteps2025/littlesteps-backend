@@ -1,35 +1,22 @@
-<<<<<<< HEAD
-import pool from '../../config/db.js';
-=======
 import pool from "../../config/db.js";
 import bcrypt from 'bcrypt';
->>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
 
 class ChildModel {
   async findAll() {
     // Join child, parent, and user tables to get child and parent info
     const query = `
-<<<<<<< HEAD
-      SELECT c.*, p.parent_id, u.user_id, u.name as parent_name, u.email as parent_email, u.phone as parent_phone, u.address as parent_address
-      FROM child c
-      JOIN parent p ON c.parent_id = p.parent_id
-      JOIN "user" u ON p.user_id = u.user_id
-=======
       SELECT c.*, p.parent_id, u.user_id, u.name as parent_name, u.email as parent_email, u.phone as parent_phone, u.address as parent_address, u.nic as NIC, g.name as group_name, pkg.name as package_name
       FROM child c
       JOIN parent p ON c.parent_id = p.parent_id
       JOIN "user" u ON p.user_id = u.user_id
       JOIN "group" g ON c.group_id = g.group_id
       JOIN "package" pkg ON c.package_id = pkg.package_id
->>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
       ORDER BY c.child_id DESC
     `;
     const { rows } = await pool.query(query);
     return rows;
   }
 
-<<<<<<< HEAD
-=======
   async checkParentByNIC(nic) {
     const query = `
       SELECT * FROM "user" WHERE nic = $1 AND role = 'parent'
@@ -38,7 +25,6 @@ class ChildModel {
     return rows[0];
   }
 
->>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
   async findById(child_id) {
     // Join child, parent, and user tables for single child
     const query = `
@@ -54,12 +40,6 @@ class ChildModel {
 
   async create(child) {
     const {
-<<<<<<< HEAD
-      name, age, gender, dob, group_id, image,
-      bc = null, blood_type = null, mr = null, allergies = null,
-      created_at, package_id = null,
-      parentName, parentNIC, parentEmail, parentAddress, parentContact
-=======
       name,
       age,
       gender,
@@ -77,15 +57,11 @@ class ChildModel {
       parentEmail,
       parentAddress,
       parentContact,
->>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
     } = child;
 
     const client = await pool.connect();
 
     try {
-<<<<<<< HEAD
-      await client.query('BEGIN');
-=======
       await client.query("BEGIN");
       const group_id = (
         await client.query(
@@ -101,7 +77,6 @@ class ChildModel {
           [package_name]
         )
       ).rows[0]?.package_id;
->>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
 
       // 1. Insert parent into 'user' table
       const userInsertQuery = `
@@ -110,17 +85,6 @@ class ChildModel {
         RETURNING user_id
       `;
       const userResult = await client.query(userInsertQuery, [
-<<<<<<< HEAD
-        parentNIC, parentName, parentAddress, parentEmail, parentContact,
-        image || null, created_at
-      ]);
-      const userId = userResult.rows[0].user_id;
-
-      // 2. Insert into 'parent' table
-      const parentInsertQuery = `
-        INSERT INTO parent (user_id, password, token, verified)
-        VALUES ($1, 'default_hashed_password', NULL, false)
-=======
         parentNIC,
         parentName,
         parentAddress,
@@ -140,7 +104,6 @@ class ChildModel {
       const parentInsertQuery = `
         INSERT INTO parent (user_id, password, token, verified)
         VALUES ($1, NULL, NULL, false)
->>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
         RETURNING parent_id
       `;
       const parentResult = await client.query(parentInsertQuery, [userId]);
@@ -155,16 +118,6 @@ class ChildModel {
         RETURNING *
       `;
       const childResult = await client.query(childInsertQuery, [
-<<<<<<< HEAD
-        parentId, name, age, gender, dob, group_id, image || null,
-        bc, blood_type, mr, allergies, created_at, package_id
-      ]);
-
-      await client.query('COMMIT');
-      return childResult.rows[0];
-    } catch (error) {
-      await client.query('ROLLBACK');
-=======
         parentId,
         name,
         age,
@@ -184,7 +137,6 @@ class ChildModel {
       return childResult.rows[0];
     } catch (error) {
       await client.query("ROLLBACK");
->>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
       throw error;
     } finally {
       client.release();
@@ -193,31 +145,6 @@ class ChildModel {
 
   async update(child_id, child) {
     const {
-<<<<<<< HEAD
-      name, age, gender, dob, group_id, image, bc, blood_type,
-      mr, allergies, created_at, package_id
-    } = child;
-
-    const { rows } = await pool.query(
-      `UPDATE child SET
-          name = $1,
-          age = $2,
-          gender = $3,
-          dob = $4,
-          group_id = $5,
-          image = $6,
-          bc = $7,
-          blood_type = $8,
-          mr = $9,
-          allergies = $10,
-          created_at = $11,
-          package_id = $12
-       WHERE child_id = $13
-       RETURNING *`,
-      [name, age, gender, dob, group_id, image, bc, blood_type, mr, allergies, created_at, package_id, child_id]
-    );
-
-=======
       name,
       package_name,
       parentContact,
@@ -254,19 +181,10 @@ class ChildModel {
     `;
     await pool.query(updateParentQuery, [parentContact, parentAddress, child_id]);
 
->>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
     return rows[0];
   }
 
   async remove(child_id) {
-<<<<<<< HEAD
-    const { rowCount } = await pool.query('DELETE FROM child WHERE child_id = $1', [child_id]);
-    return rowCount > 0;
-  }
-}
-
-export default new ChildModel();
-=======
     const client = await pool.connect();
     
     try {
@@ -560,4 +478,3 @@ export default new ChildModel();
 }
 
 export default new ChildModel();
->>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e

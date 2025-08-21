@@ -1,16 +1,4 @@
 // File: routes/child/childRoutes.js
-<<<<<<< HEAD
-import express from 'express';
-import childController from '../../controllers/child/childController.js';
-
-const router = express.Router();
-
-router.get('/', childController.getAll);
-router.get('/:id', childController.getById);
-router.post('/', childController.create);
-router.put('/:id', childController.update);
-router.delete('/:id', childController.delete);
-=======
 import express from "express";
 import childController from "../../controllers/child/childController.js";
 
@@ -27,6 +15,5 @@ router.get("/:id", childController.getById); // Parameterized routes last
 router.post("/", childController.create);
 router.put("/:id", childController.update);
 router.delete("/:id", childController.delete);
->>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
 
 export default router;
