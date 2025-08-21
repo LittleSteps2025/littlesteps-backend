@@ -1,11 +1,22 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../../config/db.js';
+<<<<<<< HEAD
+<<<<<<< HEAD
+import ParentModel from '../../models/parent/parentModel.js';   
+=======
+=======
+>>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
 import { getVerifiedParentByEmail } from '../../models/parent/parentModel.js';
 
 const handleResponse = (res, status, message, data = null) => {
   res.status(status).json({ status, message, data });
 };
+<<<<<<< HEAD
+>>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
+=======
+import ParentModel from '../../models/parent/parentModel.js';   
+>>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -152,6 +163,9 @@ export const verifyParentToken = async (req, res, next) => {
   }
 };
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
 export const checkVerifiedParent = async (req, res, next) => {
   console.log('Checking if parent is verified:', req.body);
   try{
@@ -169,3 +183,254 @@ export const checkVerifiedParent = async (req, res, next) => {
   }
 };
 
+
+>>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
+export const getAll = async (req, res) => {
+  try {
+    const query = `
+      SELECT u.*, p.parent_id, p.password, p.verified, p.token
+      FROM "user" u 
+      JOIN parent p ON u.user_id = p.user_id 
+      WHERE u.role = 'parent'
+    `;
+    const result = await pool.query(query);
+
+    const parents = result.rows.map(parent => {
+      const { password, token, ...parentData } = parent;
+      return parentData;
+    });
+
+    res.status(200).json({
+      success: true,
+      data: parents
+    });
+  } catch (error) {
+    console.error('Error fetching parents:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
+  }
+};
+
+export const getById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const query = `
+      SELECT u.*, p.parent_id, p.password, p.verified, p.token
+      FROM "user" u 
+      JOIN parent p ON u.user_id = p.user_id 
+      WHERE u.role = 'parent' AND p.parent_id = $1
+    `;
+    const result = await pool.query(query, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Parent not found',
+        error: 'PARENT_NOT_FOUND'
+      });
+    }
+
+    const parent = result.rows[0];
+    const { password, token, ...parentData } = parent;
+
+    res.status(200).json({
+      success: true,
+      data: parentData
+    });
+  } catch (error) {
+    console.error('Error fetching parent by ID:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
+  }
+};
+
+export const create = async (req, res) => {
+  const { email, password, name, phone, address } = req.body;
+
+  try {
+    // Check if parent already exists
+    const existingParentQuery = `
+      SELECT u.*, p.parent_id
+      FROM "user" u 
+      JOIN parent p ON u.user_id = p.user_id 
+      WHERE u.email = $1 AND u.role = 'parent'
+    `;
+    const existingParent = await pool.query(existingParentQuery, [email]);
+
+    if (existingParent.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Parent with this email already exists',
+        error: 'PARENT_EXISTS'
+      });
+    }
+
+    // Create new parent
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUserQuery = `
+      INSERT INTO "user" (email, password, role, name, phone, address)
+      VALUES ($1, $2, 'parent', $3, $4, $5)
+      RETURNING user_id, email, role, name, phone, address
+    `;
+    const newUserResult = await pool.query(newUserQuery, [email, hashedPassword, name, phone, address]);
+
+    const newUser = newUserResult.rows[0];
+
+    // Create parent record
+    const newParentQuery = `
+      INSERT INTO parent (user_id)
+      VALUES ($1)
+      RETURNING parent_id
+    `;
+    const newParentResult = await pool.query(newParentQuery, [newUser.user_id]);
+
+    const newParent = newParentResult.rows[0];
+
+    res.status(201).json({
+      success: true,
+      message: 'Parent created successfully',
+      data: {
+        user: {
+          id: newUser.user_id,
+          email: newUser.email,
+          name: newUser.name,
+          phone: newUser.phone,
+          address: newUser.address
+        },
+        parentId: newParent.parent_id
+      }
+    });
+  } catch (error) {
+    console.error('Error creating parent:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
+  }
+};
+
+export const update = async (req, res) => {
+  const { id } = req.params;
+  const { email, password, name, phone, address } = req.body;
+
+  try {
+    // Check if parent exists
+    const parentQuery = `
+      SELECT u.*, p.parent_id
+      FROM "user" u 
+      JOIN parent p ON u.user_id = p.user_id 
+      WHERE p.parent_id = $1
+    `;
+    const parentResult = await pool.query(parentQuery, [id]);
+
+    if (parentResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Parent not found',
+        error: 'PARENT_NOT_FOUND'
+      });
+    }
+
+    const parent = parentResult.rows[0];
+
+    // Update user and parent information
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : parent.password;
+    const updateUserQuery = `
+      UPDATE "user"
+      SET email = $1, password = $2, name = $3, phone = $4, address = $5
+      WHERE user_id = $6
+    `;
+    await pool.query(updateUserQuery, [email, hashedPassword, name, phone, address, parent.user_id]);
+
+    res.status(200).json({
+      success: true,
+      message: 'Parent updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating parent:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
+  }
+};
+
+export const deleteParent = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Check if parent exists
+    const parentQuery = `
+      SELECT u.*, p.parent_id
+      FROM "user" u 
+      JOIN parent p ON u.user_id = p.user_id 
+      WHERE p.parent_id = $1
+    `;
+    const parentResult = await pool.query(parentQuery, [id]);
+
+    if (parentResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Parent not found',
+        error: 'PARENT_NOT_FOUND'
+      });
+    }
+
+    // Delete parent record
+    const deleteParentQuery = `
+      DELETE FROM parent
+      WHERE parent_id = $1
+    `;
+    await pool.query(deleteParentQuery, [id]);
+
+    // Delete user account
+    const deleteUserQuery = `
+      DELETE FROM "user"
+      WHERE user_id = $1
+    `;
+    await pool.query(deleteUserQuery, [parentResult.rows[0].user_id]);
+
+    res.status(200).json({
+      success: true,
+      message: 'Parent deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting parent:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
+  }
+};
+<<<<<<< HEAD
+=======
+export const checkVerifiedParent = async (req, res, next) => {
+  console.log('Checking if parent is verified:', req.body);
+  try{
+    const {email} = req.body;
+    const query = await getVerifiedParentByEmail(email);
+
+    if(query){
+      return handleResponse(res, 200, 'Parent is verified', {verified: true});
+    } else {
+      return handleResponse(res, 403, 'Parent is not verified', {verified: false});
+    }
+  }catch (error) {
+    console.error('Error checking verified parent:', error);
+    return handleResponse(res, 500, 'Server error', {error: 'SERVER_ERROR'});
+  }
+};
+
+>>>>>>> fd9b2a3f492bc8fdc3ded97b9512b2d647d2953e
+=======
+>>>>>>> 6b9c908d9f7501d6b1f60e9c0d68982b106e374b
