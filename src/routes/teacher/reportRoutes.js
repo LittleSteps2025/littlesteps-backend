@@ -1,7 +1,7 @@
 
 
 import express from 'express';
-import { getReports, getReportByChildId, updateArrivalTime,updateStatusFields ,submitReport,getReportByReportId} from '../../controllers/teacher/reportController.js';
+import { getReports, getallReports, getReportByChildId, updateArrivalTime,updateStatusFields ,submitReport,getReportByReportId} from '../../controllers/teacher/reportController.js';
 // import authenticateUser from '../../middlewares/firebaseAuthMiddleware.js';
 import authenticateUser from '../../middlewares/firebaseAuthMiddleware.js';
 
@@ -14,7 +14,9 @@ const router = express.Router();
 //localhost:5001/api/routes
 
 
-router.get('/', getReports);
+router.get('/', authenticateUser, getReports);
+router.get('/allreports', getallReports);
+
 router.get("/:report_id", getReportByReportId); 
 
 // router.get('/:child_id', getReportByChildId);

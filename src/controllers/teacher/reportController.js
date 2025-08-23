@@ -4,8 +4,25 @@ import pool from '../../config/db.js'; // For raw SQL queries
 
 export const getReports = async (req, res, next) => {
   try {
-    const today = new Date().toISOString().split("T")[0]; // e.g., '2025-07-03'
-    const reports = await ReportModel.getReportsByDate(today);
+    const { userId } = req.user; // ✅ comes from authenticateUser middleware
+    const today = new Date().toISOString().split("T")[0]; // e.g., '2025-08-23'
+
+    const reports = await ReportModel.getReportsByDate(today, userId);
+
+    res.status(200).json(reports);
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+export const getallReports = async (req, res, next) => {
+  try {
+   // ✅ comes from authenticateUser middleware
+    const today = new Date().toISOString().split("T")[0]; // e.g., '2025-08-23'
+
+    const reports = await ReportModel.getallReportsByDate(today);
+
     res.status(200).json(reports);
   } catch (error) {
     next(error);
