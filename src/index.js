@@ -14,6 +14,7 @@ import eventRoutes from './routes/eventRoutes.js';
 import announcementRoutes from './routes/announcementRoutes.js';
 import meetingRoutes from './routes/meetingRoutes.js'; // ✅ Meeting routes
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
+import complaintRoutes from './routes/complaintRoutes.js'; // ✅ Complaint routes
 
 
 
@@ -49,6 +50,7 @@ app.use('/api/child', childRoutes); // Child routes
 app.use('/api/events', eventRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/meetings', meetingRoutes); // ✅ Meeting routes
+app.use('/api/complaints', complaintRoutes); // ✅ Complaint routes
 // Error handling middleware
 app.use(errorHandler);
 
