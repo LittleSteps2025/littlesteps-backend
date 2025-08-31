@@ -12,8 +12,9 @@ import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 import childRoutes from './routes/child/childRoutes.js'; // Child routes
 import eventRoutes from './routes/eventRoutes.js';
 import announcementRoutes from './routes/announcementRoutes.js';
-
+import meetingRoutes from './routes/meetingRoutes.js'; // ✅ Meeting routes
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
+
 
 
 dotenv.config();
@@ -47,10 +48,11 @@ app.use('/api', dailyRecordRoutes);
 app.use('/api/child', childRoutes); // Child routes
 app.use('/api/events', eventRoutes);
 app.use('/api/announcements', announcementRoutes);
+app.use('/api/meetings', meetingRoutes); // ✅ Meeting routes
 // Error handling middleware
 app.use(errorHandler);
 
-// Create user table before starting the server
+// Create tables before starting the server
 // createUserTable();
 
 // PostgreSQL test route
