@@ -1,26 +1,26 @@
 import meetingModel from '../models/meetingModel.js';
 
-// Get all meetings
+// Get all meetings for supervisor only
 export const getAllMeetings = async (req, res) => {
   try {
-    const meetings = await meetingModel.findAll();
+    const meetings = await meetingModel.findByRecipient('supervisor');
     
     res.status(200).json({
       success: true,
       data: meetings,
-      message: 'Meetings retrieved successfully'
+      message: 'Supervisor meetings retrieved successfully'
     });
   } catch (error) {
-    console.error('Error getting meetings:', error);
+    console.error('Error getting supervisor meetings:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve meetings',
+      message: 'Failed to retrieve supervisor meetings',
       error: error.message
     });
   }
 };
 
-// Get meeting by ID
+// Get meeting by ID (only if it belongs to supervisor)
 export const getMeetingById = async (req, res) => {
   try {
     const { meeting_id } = req.params;
@@ -30,6 +30,14 @@ export const getMeetingById = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Meeting not found'
+      });
+    }
+    
+    // Check if meeting belongs to supervisor
+    if (meeting.recipient !== 'supervisor') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. This meeting does not belong to supervisor'
       });
     }
     
@@ -48,11 +56,11 @@ export const getMeetingById = async (req, res) => {
   }
 };
 
-// Get meetings by child ID
+// Get meetings by child ID (only supervisor meetings)
 export const getMeetingsByChildId = async (req, res) => {
   try {
     const { child_id } = req.params;
-    const meetings = await meetingModel.findByChildId(child_id);
+    const meetings = await meetingModel.findByChildIdAndRecipient(child_id, 'supervisor');
     
     res.status(200).json({
       success: true,
@@ -69,28 +77,37 @@ export const getMeetingsByChildId = async (req, res) => {
   }
 };
 
-// Get meetings by recipient
+// Get meetings by recipient (only supervisor can access supervisor meetings)
 export const getMeetingsByRecipient = async (req, res) => {
   try {
     const { recipient } = req.params;
+    
+    // Only allow supervisor to access supervisor meetings
+    if (recipient !== 'supervisor') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Can only retrieve supervisor meetings'
+      });
+    }
+    
     const meetings = await meetingModel.findByRecipient(recipient);
     
     res.status(200).json({
       success: true,
       data: meetings,
-      message: 'Recipient meetings retrieved successfully'
+      message: 'Supervisor meetings retrieved successfully'
     });
   } catch (error) {
     console.error('Error getting meetings by recipient:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve recipient meetings',
+      message: 'Failed to retrieve supervisor meetings',
       error: error.message
     });
   }
 };
 
-// Create new meeting
+// Create new meeting (only for supervisor)
 export const createMeeting = async (req, res) => {
   try {
     const { child_id, recipient, meeting_date, meeting_time, reason, response } = req.body;
@@ -103,11 +120,11 @@ export const createMeeting = async (req, res) => {
       });
     }
     
-    // Validate recipient
-    if (!['teacher', 'supervisor'].includes(recipient)) {
+    // Validate recipient - only allow supervisor meetings
+    if (recipient !== 'supervisor') {
       return res.status(400).json({
         success: false,
-        message: 'Recipient must be either "teacher" or "supervisor"'
+        message: 'Recipient must be "supervisor"'
       });
     }
     
@@ -125,7 +142,7 @@ export const createMeeting = async (req, res) => {
     res.status(201).json({
       success: true,
       data: newMeeting,
-      message: 'Meeting created successfully'
+      message: 'Supervisor meeting created successfully'
     });
   } catch (error) {
     console.error('Error creating meeting:', error);
@@ -137,11 +154,27 @@ export const createMeeting = async (req, res) => {
   }
 };
 
-// Update meeting (supervisor can only update date, time, and reason)
+// Update meeting (supervisor can only update supervisor meetings)
 export const updateMeeting = async (req, res) => {
   try {
     const { meeting_id } = req.params;
     const { meeting_date, meeting_time, reason, response } = req.body;
+    
+    // First check if meeting exists and belongs to supervisor
+    const existingMeeting = await meetingModel.findById(meeting_id);
+    if (!existingMeeting) {
+      return res.status(404).json({
+        success: false,
+        message: 'Meeting not found'
+      });
+    }
+    
+    if (existingMeeting.recipient !== 'supervisor') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Can only update supervisor meetings'
+      });
+    }
     
     // Validate required fields
     if (!meeting_date || !meeting_time || !reason) {
@@ -160,17 +193,10 @@ export const updateMeeting = async (req, res) => {
     
     const updatedMeeting = await meetingModel.update(meeting_id, meetingData);
     
-    if (!updatedMeeting) {
-      return res.status(404).json({
-        success: false,
-        message: 'Meeting not found'
-      });
-    }
-    
     res.status(200).json({
       success: true,
       data: updatedMeeting,
-      message: 'Meeting updated successfully'
+      message: 'Supervisor meeting updated successfully'
     });
   } catch (error) {
     console.error('Error updating meeting:', error);
@@ -182,7 +208,7 @@ export const updateMeeting = async (req, res) => {
   }
 };
 
-// Update meeting response only
+// Update meeting response only (for supervisor meetings)
 export const updateMeetingResponse = async (req, res) => {
   try {
     const { meeting_id } = req.params;
@@ -195,14 +221,23 @@ export const updateMeetingResponse = async (req, res) => {
       });
     }
     
-    const updatedMeeting = await meetingModel.updateResponse(meeting_id, response);
-    
-    if (!updatedMeeting) {
+    // First check if meeting exists and belongs to supervisor
+    const existingMeeting = await meetingModel.findById(meeting_id);
+    if (!existingMeeting) {
       return res.status(404).json({
         success: false,
         message: 'Meeting not found'
       });
     }
+    
+    if (existingMeeting.recipient !== 'supervisor') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Can only update supervisor meetings'
+      });
+    }
+    
+    const updatedMeeting = await meetingModel.updateResponse(meeting_id, response);
     
     res.status(200).json({
       success: true,
@@ -219,23 +254,33 @@ export const updateMeetingResponse = async (req, res) => {
   }
 };
 
-// Delete meeting
+// Delete meeting (only supervisor meetings)
 export const deleteMeeting = async (req, res) => {
   try {
     const { meeting_id } = req.params;
-    const deletedMeeting = await meetingModel.remove(meeting_id);
     
-    if (!deletedMeeting) {
+    // First check if meeting exists and belongs to supervisor
+    const existingMeeting = await meetingModel.findById(meeting_id);
+    if (!existingMeeting) {
       return res.status(404).json({
         success: false,
         message: 'Meeting not found'
       });
     }
     
+    if (existingMeeting.recipient !== 'supervisor') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Can only delete supervisor meetings'
+      });
+    }
+    
+    const deletedMeeting = await meetingModel.remove(meeting_id);
+    
     res.status(200).json({
       success: true,
       data: deletedMeeting,
-      message: 'Meeting deleted successfully'
+      message: 'Supervisor meeting deleted successfully'
     });
   } catch (error) {
     console.error('Error deleting meeting:', error);
@@ -247,17 +292,18 @@ export const deleteMeeting = async (req, res) => {
   }
 };
 
-// Search meetings with filters
+// Search meetings with filters (only supervisor meetings)
 export const searchMeetings = async (req, res) => {
   try {
-    const { searchTerm, recipient, response, dateFrom, dateTo } = req.query;
+    const { searchTerm, response, dateFrom, dateTo } = req.query;
     
-    const meetings = await meetingModel.search(searchTerm, recipient, response, dateFrom, dateTo);
+    // Only search for supervisor meetings
+    const meetings = await meetingModel.searchSupervisorMeetings(searchTerm, response, dateFrom, dateTo);
     
     res.status(200).json({
       success: true,
       data: meetings,
-      message: 'Meetings search completed successfully'
+      message: 'Supervisor meetings search completed successfully'
     });
   } catch (error) {
     console.error('Error searching meetings:', error);

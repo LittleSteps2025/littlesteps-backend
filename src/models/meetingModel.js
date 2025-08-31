@@ -1,7 +1,7 @@
 import pool from '../config/db.js';
 
 class MeetingModel {
-  // Get all meetings with child and parent information
+  // Get all meetings with child and parent information (only supervisor meetings)
   async findAll() {
     const query = `
       SELECT 
@@ -18,6 +18,7 @@ class MeetingModel {
       JOIN child c ON m.child_id = c.child_id
       JOIN parent p ON c.parent_id = p.parent_id
       JOIN "user" u ON p.user_id = u.user_id
+      WHERE m.recipient = 'supervisor'
       ORDER BY m.meeting_date DESC, m.meeting_time DESC
     `;
     
@@ -25,7 +26,7 @@ class MeetingModel {
       const { rows } = await pool.query(query);
       return rows;
     } catch (error) {
-      console.error('Error fetching meetings:', error);
+      console.error('Error fetching supervisor meetings:', error);
       throw error;
     }
   }
@@ -59,8 +60,8 @@ class MeetingModel {
     }
   }
 
-  // Get meetings by child ID
-  async findByChildId(child_id) {
+  // Get meetings by child ID and recipient
+  async findByChildIdAndRecipient(child_id, recipient) {
     const query = `
       SELECT 
         m.*,
@@ -76,15 +77,15 @@ class MeetingModel {
       JOIN child c ON m.child_id = c.child_id
       JOIN parent p ON c.parent_id = p.parent_id
       JOIN "user" u ON p.user_id = u.user_id
-      WHERE m.child_id = $1
+      WHERE m.child_id = $1 AND m.recipient = $2
       ORDER BY m.meeting_date DESC, m.meeting_time DESC
     `;
     
     try {
-      const { rows } = await pool.query(query, [child_id]);
+      const { rows } = await pool.query(query, [child_id, recipient]);
       return rows;
     } catch (error) {
-      console.error('Error fetching meetings by child ID:', error);
+      console.error('Error fetching meetings by child ID and recipient:', error);
       throw error;
     }
   }
@@ -193,8 +194,8 @@ class MeetingModel {
     }
   }
 
-  // Search meetings with filters
-  async search(searchTerm, recipient = null, response = null, dateFrom = null, dateTo = null) {
+  // Search supervisor meetings with filters
+  async searchSupervisorMeetings(searchTerm, response = null, dateFrom = null, dateTo = null) {
     let query = `
       SELECT 
         m.*,
@@ -210,17 +211,11 @@ class MeetingModel {
       JOIN child c ON m.child_id = c.child_id
       JOIN parent p ON c.parent_id = p.parent_id
       JOIN "user" u ON p.user_id = u.user_id
-      WHERE 1=1
+      WHERE m.recipient = 'supervisor'
     `;
     
     const params = [];
     let paramIndex = 1;
-
-    if (recipient && recipient !== 'All') {
-      query += ` AND m.recipient = $${paramIndex}`;
-      params.push(recipient);
-      paramIndex++;
-    }
 
     if (response && response !== 'All Status') {
       query += ` AND (
@@ -263,7 +258,7 @@ class MeetingModel {
       const { rows } = await pool.query(query, params);
       return rows;
     } catch (error) {
-      console.error('Error searching meetings:', error);
+      console.error('Error searching supervisor meetings:', error);
       throw error;
     }
   }
