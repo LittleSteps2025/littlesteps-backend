@@ -20,7 +20,7 @@ import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://lo
 import childrenRoutes from './routes/parent/childrenRoutes.js'; // Children routes
 import supervisorRoutes from './routes/supervisorRoutes.js'; // Supervisor routes
 import childRoutes from './routes/teacher/childRoutes.js'; // Child routes for teachers
-
+import profileRoutes from './routes/teacher/profileRoutes.js'; // Teacher profile routes
 
 
 
@@ -67,7 +67,7 @@ app.use('/api/supervisors', supervisorRoutes);
 app.use('/api/supervisors/child', childSupervisorRoutes); // Supervisor child routes
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/daily-records', viewReportRoutes);
-
+app.use('/api/teacherprofile', profileRoutes);
 
 // Error handling middlewareapp.use('/api/child', childRoutes);
 
