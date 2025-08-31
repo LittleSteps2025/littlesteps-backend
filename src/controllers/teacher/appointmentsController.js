@@ -8,7 +8,7 @@ export const getAppointments = async (req, res, next) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const userId = currentUser.user_id;
+    const userId = currentUser.userId;
     console.log("User ID:", userId);
     if (!userId) {
       return res.status(400).json({ message: 'User ID not found' });
