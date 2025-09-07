@@ -1,10 +1,12 @@
 import crypto from "crypto";
 import pool from "../../config/db.js";
 import { getPaymentsHistory, getParentPaymentsHistory } from "../../models/payment/paymentModel.js";
+import dotenv from "dotenv";
+dotenv.config();
 
-
-const MERCHANT_ID = "1231867"; // from your dashboard
-const MERCHANT_SECRET = "MjcwOTg5MjQ3MTc4MjYxMTU4ODI0NDUyNDgyMjkxODI3ODE0NTQx"; // from your screenshot
+// PayHere credentials from environment variables
+const MERCHANT_ID = process.env.PAYHERE_MERCHANT_ID || ""; // from your dashboard
+const MERCHANT_SECRET = process.env.PAYHERE_SECRET || ""; // from your dashboard
 
 // Format amount for PayHere (two decimals)
 const formatAmount = (val) => {
