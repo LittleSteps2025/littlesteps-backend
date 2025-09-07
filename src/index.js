@@ -20,9 +20,11 @@ import eventRoutes from './routes/teacher/eventRoutes.js'; // Example: http://lo
 import childrenRoutes from './routes/parent/childrenRoutes.js'; // Children routes
 import supervisorRoutes from './routes/supervisorRoutes.js'; // Supervisor routes
 import childRoutes from './routes/teacher/childRoutes.js'; // Child routes for teachers
+import healthRecordRoutes from './routes/parent/healthRecordRoutes.js'; // Health record routes
+import meetingRoutes from './routes/parent/meetingRoutes.js'; // Meeting routes
+import complaintRoutes from './routes/parent/complaintRoutes.js'; // Complaint routes
 import appointmentsRoutes from './routes/teacher/appointmentsRoutes.js'; // Appointment routes for teachers
 import paymentRoutes from './routes/payment/paymentRoute.js'; // Payment routes
-
 
 
 import viewReportRoutes from './routes/parent/viewReportRoutes.js'; // View report routes
@@ -68,6 +70,9 @@ app.use('/api/supervisors', supervisorRoutes);
 app.use('/api/supervisors/child', childSupervisorRoutes); // Supervisor child routes
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/daily-records', viewReportRoutes);
+app.use('/api/parent/health', healthRecordRoutes); // Health record routes
+app.use('/api/parent/meeting', meetingRoutes);
+app.use('/api/parent/complaint', complaintRoutes);
 app.use('/api/appointments', appointmentsRoutes);
 app.use('/api/payment', paymentRoutes);
 
