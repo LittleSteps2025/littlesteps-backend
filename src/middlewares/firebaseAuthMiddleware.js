@@ -12,7 +12,8 @@ import pool from '../config/db.js'; // Use .js extension for ES modules
 
 
 //chek mekata emergency notes wedada kiyla
-import serviceAccount from '../../firebaseServiceAccount.json' with { type: 'json' };
+import { readFileSync } from 'fs';
+const serviceAccount = JSON.parse(readFileSync('./firebaseServiceAccount.json', 'utf8'));
 
 
 if (!admin.apps.length) {
