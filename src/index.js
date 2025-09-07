@@ -21,6 +21,8 @@ import childrenRoutes from './routes/parent/childrenRoutes.js'; // Children rout
 import supervisorRoutes from './routes/supervisorRoutes.js'; // Supervisor routes
 import childRoutes from './routes/teacher/childRoutes.js'; // Child routes for teachers
 import appointmentsRoutes from './routes/teacher/appointmentsRoutes.js'; // Appointment routes for teachers
+import paymentRoutes from './routes/payment/paymentRoute.js'; // Payment routes
+
 
 
 import viewReportRoutes from './routes/parent/viewReportRoutes.js'; // View report routes
@@ -67,6 +69,7 @@ app.use('/api/supervisors/child', childSupervisorRoutes); // Supervisor child ro
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/daily-records', viewReportRoutes);
 app.use('/api/appointments', appointmentsRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Error handling middlewareapp.use('/api/child', childRoutes);
 
