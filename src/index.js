@@ -68,9 +68,9 @@ app.use('/api/supervisors', supervisorRoutes);
 app.use('/api/supervisors/child', childSupervisorRoutes); // Supervisor child routes
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/daily-records', viewReportRoutes);
-app.use('/api/parent', healthRecordRoutes); // Health record routes
-app.use('/api/parent', meetingRoutes);
-app.use('/api/parent', complaintRoutes);
+app.use('/api/parent/health', healthRecordRoutes); // Health record routes
+app.use('/api/parent/meeting', meetingRoutes);
+app.use('/api/parent/complaint', complaintRoutes);
 
 
 
