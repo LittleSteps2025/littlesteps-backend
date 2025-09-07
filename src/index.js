@@ -23,6 +23,8 @@ import childRoutes from './routes/teacher/childRoutes.js'; // Child routes for t
 import healthRecordRoutes from './routes/parent/healthRecordRoutes.js'; // Health record routes
 import meetingRoutes from './routes/parent/meetingRoutes.js'; // Meeting routes
 import complaintRoutes from './routes/parent/complaintRoutes.js'; // Complaint routes
+import appointmentsRoutes from './routes/teacher/appointmentsRoutes.js'; // Appointment routes for teachers
+import paymentRoutes from './routes/payment/paymentRoute.js'; // Payment routes
 
 
 import viewReportRoutes from './routes/parent/viewReportRoutes.js'; // View report routes
@@ -71,8 +73,8 @@ app.use('/api/daily-records', viewReportRoutes);
 app.use('/api/parent/health', healthRecordRoutes); // Health record routes
 app.use('/api/parent/meeting', meetingRoutes);
 app.use('/api/parent/complaint', complaintRoutes);
-
-
+app.use('/api/appointments', appointmentsRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Error handling middlewareapp.use('/api/child', childRoutes);
 
