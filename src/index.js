@@ -27,6 +27,8 @@ import supervisorRoutes from './routes/supervisorRoutes.js';
 import childSupervisorRoutes from './routes/child/childRoutes.js';
 import supervisorEventRoutes from './routes/eventRoutes.js';
 import announcementsRoutes from './routes/announcementsRoute.js'; 
+import appointmentRoutes from './routes/appointmentRoute.js';
+
 
 dotenv.config();
 
@@ -61,6 +63,7 @@ app.use('/api/supervisors', supervisorRoutes);
 app.use('/api/supervisors/child', childSupervisorRoutes);
 app.use('/api/supervisor/events', supervisorEventRoutes);
 app.use('/api/announcements', announcementsRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

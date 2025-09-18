@@ -1,11 +1,9 @@
-// File: controllers/child/childController.js
+import bcrypt from 'bcrypt';
+import pool from '../../config/db.js';
 import childModel from "../../models/child/childModel.js";
 import { getParentByNic } from "../../models/supervisorModel.js";
 import { getAllParents } from "../../models/parent/parentModel.js";
 import { sendParentVerificationEmail } from "../../services/emailService.js";
-import { pool } from "../../config/db.js";
-import bcrypt from "bcrypt";
-
 
 // Helper function to generate 4-digit verification code
 const generateVerificationCode = () => {
@@ -95,6 +93,10 @@ class ChildController {
       const existParent = await getParentByNic(childData.parentNIC);
       console.log("Received child data:", childData);
       console.log("Parent found by NIC:", existParent);
+      
+      // Generate verification code at the start
+      const verificationCode = generateVerificationCode();
+      console.log("Generated verification code:", verificationCode);
 
       // Validate required fields
       const requiredFields = [
