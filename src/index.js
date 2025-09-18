@@ -21,14 +21,21 @@ import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
 import announcementRoutes from './routes/parent/announcementRoutes.js';
 import childrenRoutes from './routes/parent/childrenRoutes.js';
 import viewReportRoutes from './routes/parent/viewReportRoutes.js';
+import healthRecordRoutes from './routes/parent/healthRecordRoutes.js';
+import meetingRoutes from './routes/parent/meetingRoutes.js';
+import complaintRoutes from './routes/parent/complaintRoutes.js';
+
+// Teacher Routes
+import appointmentsRoutes from './routes/teacher/appointmentsRoutes.js';
 
 // Supervisor Routes
 import supervisorRoutes from './routes/supervisorRoutes.js';
 import childSupervisorRoutes from './routes/child/childRoutes.js';
 import supervisorEventRoutes from './routes/eventRoutes.js';
-import announcementsRoutes from './routes/announcementsRoute.js'; 
-import appointmentRoutes from './routes/appointmentRoute.js';
+import announcementsRoutes from './routes/announcementsRoute.js';
 
+// Payment Routes
+import paymentRoutes from './routes/payment/paymentRoute.js';
 
 dotenv.config();
 
@@ -63,7 +70,17 @@ app.use('/api/supervisors', supervisorRoutes);
 app.use('/api/supervisors/child', childSupervisorRoutes);
 app.use('/api/supervisor/events', supervisorEventRoutes);
 app.use('/api/announcements', announcementsRoutes);
-app.use('/api/appointments', appointmentRoutes);
+
+// Additional Parent Routes
+app.use('/api/parent/health', healthRecordRoutes);
+app.use('/api/parent/meeting', meetingRoutes);
+app.use('/api/parent/complaint', complaintRoutes);
+
+// Appointment Routes
+app.use('/api/appointments', appointmentsRoutes);
+
+// Payment Routes
+app.use('/api/payment', paymentRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
