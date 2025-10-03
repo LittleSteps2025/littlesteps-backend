@@ -6,7 +6,6 @@ import { sendParentVerificationEmail } from "../../services/emailService.js";
 import { pool } from "../../config/db.js";
 import bcrypt from "bcrypt";
 
-
 // Helper function to generate 4-digit verification code
 const generateVerificationCode = () => {
   return Math.floor(1000 + Math.random() * 9000).toString(); // Generates 4-digit code
@@ -26,7 +25,7 @@ const updateParentToken = async (parentId, hashedToken) => {
     WHERE parent_id = $2 
     RETURNING parent_id;
   `;
-  
+
   try {
     const result = await pool.query(query, [hashedToken, parentId]);
     return result.rows[0];
@@ -129,8 +128,11 @@ class ChildController {
       // Check if parent exists and handle accordingly
       if (existParent) {
         // Parent exists - add child under existing parent
-        console.log("Parent found, adding child under existing parent:", existParent);
-        
+        console.log(
+          "Parent found, adding child under existing parent:",
+          existParent
+        );
+
         // Use existing parent data - override any provided parent details
         childData.parentName = existParent.name;
         childData.parentEmail = existParent.email;
@@ -139,18 +141,20 @@ class ChildController {
         childData.parentNIC = existParent.nic;
 
         // Create child with existing parent reference
-        const newChild = await childModel.createWithVerifiedParent(childData, existParent.parent_id);
-        
+        const newChild = await childModel.createWithVerifiedParent(
+          childData,
+          existParent.parent_id
+        );
+
         return res.status(201).json({
           message: "Child created successfully under existing parent",
           child: newChild,
-          parent: existParent
+          parent: existParent,
         });
-        
       } else {
         // Parent doesn't exist - create new parent and child
         console.log("Parent not found, creating new parent and child");
-        
+
         // Validate email format for new parent
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(childData.parentEmail)) {
@@ -176,11 +180,14 @@ class ChildController {
         // Send verification code email to parent
         try {
           await sendParentVerificationEmail(
-            childData.parentEmail, 
-            verificationCode, 
+            childData.parentEmail,
+            verificationCode,
             childData.parentName
           );
-          console.log("Verification email sent successfully to:", childData.parentEmail);
+          console.log(
+            "Verification email sent successfully to:",
+            childData.parentEmail
+          );
         } catch (emailError) {
           console.error("Error sending verification email:", emailError);
           // Don't fail the entire operation if email fails
@@ -188,9 +195,10 @@ class ChildController {
         }
 
         return res.status(201).json({
-          message: "New parent and child created successfully. A 4-digit verification code has been sent to the parent's email.",
+          message:
+            "New parent and child created successfully. A 4-digit verification code has been sent to the parent's email.",
           child: newChild,
-          emailSent: true
+          emailSent: true,
         });
       }
     } catch (error) {
@@ -203,7 +211,7 @@ class ChildController {
           return res.status(409).json({
             message: "This email address is already registered",
             field: "parentEmail",
-            errorType: "duplicate_email"
+            errorType: "duplicate_email",
           });
         }
       }
@@ -212,14 +220,14 @@ class ChildController {
         // Foreign key constraint violation
         return res.status(400).json({
           message: "Invalid group_id or parent_id reference",
-          errorType: "foreign_key_violation"
+          errorType: "foreign_key_violation",
         });
       }
 
       res.status(500).json({
         message: "Error creating child",
         error: error.message,
-        errorType: "server_error"
+        errorType: "server_error",
       });
     }
   }
@@ -344,6 +352,43 @@ class ChildController {
           ? error.message
           : "Failed to retrieve packages. Please try again later.";
       res.status(500).json({ message });
+    }
+  }
+  async getPackageById(req, res) {
+    try {
+      const { child_id } = req.params;
+      console.log("Getting package for child ID:", child_id);
+
+      // Validate child_id is a number
+      if (!child_id || isNaN(child_id)) {
+        return res.status(400).json({
+          message: "Invalid child ID. Must be a number.",
+          received: child_id,
+        });
+      }
+
+      const packageData = await childModel.getPackageById(parseInt(child_id));
+      console.log("Package data retrieved:", packageData);
+
+      if (packageData) {
+        res.status(200).json({
+          success: true,
+          data: packageData,
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: "Package not found for the given child ID",
+          child_id: child_id,
+        });
+      }
+    } catch (error) {
+      console.error("Error retrieving package:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error retrieving package",
+        error: error.message,
+      });
     }
   }
   async check_nic(req, res) {
