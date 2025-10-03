@@ -32,14 +32,14 @@ export const parentLogin = async (req, res) => {
       });
     }
 
-    // Database lookup - join user and parent tables
-    const query = `
+    // Database lookup - get parent data first
+    const parentQuery = `
       SELECT u.*, p.parent_id, p.password, p.verified, p.token
       FROM "user" u 
-      JOIN parent p ON u.user_id = p.user_id 
+      JOIN parent p ON u.user_id = p.user_id
       WHERE u.email = $1 AND u.role = 'parent'
     `;
-    const result = await pool.query(query, [email]);
+    const result = await pool.query(parentQuery, [email]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -80,6 +80,15 @@ export const parentLogin = async (req, res) => {
       });
     }
 
+    // Fetch all children for this parent
+    const childrenQuery = `
+      SELECT child_id, name, age, gender, dob, group_id, image, blood_type, created_at
+      FROM child 
+      WHERE parent_id = $1
+      ORDER BY created_at ASC
+    `;
+    const childrenResult = await pool.query(childrenQuery, [parent.parent_id]);
+    
     // Generate JWT token
     const token = jwt.sign(
       { 
@@ -111,6 +120,8 @@ export const parentLogin = async (req, res) => {
           status: parentData.status,
           created_at: parentData.created_at
         },
+        children: childrenResult.rows, // Children as array
+        childrenCount: childrenResult.rows.length,
         token,
         tokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
       }
