@@ -294,6 +294,16 @@ class ChildModel {
       throw error;
     }
   }
+  async getPackageById(child_id) {
+    const query = `
+      SELECT pkg.* 
+      FROM child c
+      JOIN "package" pkg ON c.package_id = pkg.package_id
+      WHERE c.child_id = $1
+    `;
+    const { rows } = await pool.query(query, [child_id]);
+    return rows[0];
+  }
 
   // Check if parent exists by email
   async checkParentByEmail(email) {
