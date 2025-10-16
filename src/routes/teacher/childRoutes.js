@@ -11,7 +11,6 @@ import {
   saveEmergencyNote,
 } from '../../controllers/teacher/childController.js';
 import authenticateUser from '../../middlewares/firebaseAuthMiddleware.js';
-import childController from "../../controllers/child/childController.js";
 
 const router = express.Router();
 
@@ -36,7 +35,7 @@ router.get('/filter/groups', getAllGroups);
 router.get('/with-parents', getChildrenWithParents);
 
 router.post('/:childId/notes', authenticateUser, saveEmergencyNote);
-router.get("/package/:child_id", childController.getPackageById);
+// router.get("/package/:child_id", getPackageById);
 
 
 
