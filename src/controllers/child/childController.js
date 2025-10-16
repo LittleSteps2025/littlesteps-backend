@@ -359,7 +359,7 @@ class ChildController {
   }
   async getPackageById(req, res) {
     try {
-      const { child_id } = req.params;
+      const { id: child_id } = req.params;
       console.log("Getting package for child ID:", child_id);
 
       // Validate child_id is a number
