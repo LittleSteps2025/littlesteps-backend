@@ -167,16 +167,40 @@ class MeetingModel {
   async updateResponse(meeting_id, response) {
     const query = `
       UPDATE meeting 
-      SET response = $1
+      SET response = $1, updated_at = CURRENT_TIMESTAMP
       WHERE meeting_id = $2
       RETURNING *
     `;
     
     try {
-      const { rows } = await pool.query(query, [response, meeting_id]);
+      const { rows } = await pool.query(query, [response || null, meeting_id]);
+      if (rows.length === 0) {
+        throw new Error('No meeting found with the provided ID');
+      }
       return rows[0];
     } catch (error) {
       console.error('Error updating meeting response:', error);
+      throw error;
+    }
+  }
+
+  // Reschedule meeting (only date and time)
+  async reschedule(meeting_id, meeting_date, meeting_time, response = null) {
+    const query = `
+      UPDATE meeting 
+      SET meeting_date = $1, meeting_time = $2, response = COALESCE($3, response), updated_at = CURRENT_TIMESTAMP
+      WHERE meeting_id = $4
+      RETURNING *
+    `;
+    
+    try {
+      const { rows } = await pool.query(query, [meeting_date, meeting_time, response, meeting_id]);
+      if (rows.length === 0) {
+        throw new Error('No meeting found with the provided ID');
+      }
+      return rows[0];
+    } catch (error) {
+      console.error('Error rescheduling meeting:', error);
       throw error;
     }
   }

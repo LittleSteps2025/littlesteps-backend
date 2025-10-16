@@ -188,7 +188,7 @@ export const updateMeeting = async (req, res) => {
       meeting_date,
       meeting_time,
       reason,
-      response: response || null
+      response: response || existingMeeting.response
     };
     
     const updatedMeeting = await meetingModel.update(meeting_id, meetingData);
@@ -208,16 +208,64 @@ export const updateMeeting = async (req, res) => {
   }
 };
 
+// Reschedule meeting (only date and time)
+export const rescheduleMeeting = async (req, res) => {
+  try {
+    const { meeting_id } = req.params;
+    const { meeting_date, meeting_time, response } = req.body;
+    
+    // First check if meeting exists and belongs to supervisor
+    const existingMeeting = await meetingModel.findById(meeting_id);
+    if (!existingMeeting) {
+      return res.status(404).json({
+        success: false,
+        message: 'Meeting not found'
+      });
+    }
+    
+    if (existingMeeting.recipient !== 'supervisor') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Can only reschedule supervisor meetings'
+      });
+    }
+    
+    // Validate required fields for rescheduling
+    if (!meeting_date || !meeting_time) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: meeting_date, meeting_time'
+      });
+    }
+    
+    const updatedMeeting = await meetingModel.reschedule(meeting_id, meeting_date, meeting_time, response);
+    
+    res.status(200).json({
+      success: true,
+      data: updatedMeeting,
+      message: 'Supervisor meeting rescheduled successfully'
+    });
+  } catch (error) {
+    console.error('Error rescheduling meeting:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reschedule meeting',
+      error: error.message
+    });
+  }
+};
+
 // Update meeting response only (for supervisor meetings)
 export const updateMeetingResponse = async (req, res) => {
   try {
     const { meeting_id } = req.params;
     const { response } = req.body;
     
-    if (!response) {
+    // Validate response field exists (can be empty string for deletion)
+    if (response === undefined || response === null) {
       return res.status(400).json({
         success: false,
-        message: 'Response is required'
+        message: 'Response field is required'
       });
     }
     
@@ -237,12 +285,21 @@ export const updateMeetingResponse = async (req, res) => {
       });
     }
     
-    const updatedMeeting = await meetingModel.updateResponse(meeting_id, response);
+    // Allow empty string for deletion, trim non-empty responses
+    const cleanResponse = response && typeof response === 'string' ? response.trim() : '';
+    const updatedMeeting = await meetingModel.updateResponse(meeting_id, cleanResponse || null);
+    
+    if (!updatedMeeting) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update meeting response in database'
+      });
+    }
     
     res.status(200).json({
       success: true,
       data: updatedMeeting,
-      message: 'Meeting response updated successfully'
+      message: cleanResponse ? 'Meeting response updated successfully' : 'Meeting response deleted successfully'
     });
   } catch (error) {
     console.error('Error updating meeting response:', error);
