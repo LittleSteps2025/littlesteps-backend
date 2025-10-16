@@ -37,6 +37,8 @@ import announcementsRoutes from './routes/announcementsRoute.js';
 // Payment Routes
 import paymentRoutes from './routes/payment/paymentRoute.js';
 
+import subscriptionRoutes from './routes/subscriptionRoutes.js';
+
 dotenv.config();
 
 const app = express();
@@ -74,13 +76,26 @@ app.use('/api/announcements', announcementsRoutes);
 // Additional Parent Routes
 app.use('/api/parent/health', healthRecordRoutes);
 app.use('/api/parent/meeting', meetingRoutes);
-app.use('/api/parent/complaint', complaintRoutes);
+app.use('/api/complaints', complaintRoutes);
 
 // Appointment Routes
 app.use('/api/appointments', appointmentsRoutes);
 
 // Payment Routes
 app.use('/api/payment', paymentRoutes);
+
+// Subscription Routes
+console.log('Mounting subscription routes...');
+app.use('/api/subscriptions', (req, res, next) => {
+  console.log('Incoming request to subscriptions:', {
+    method: req.method,
+    path: req.path,
+    query: req.query,
+    body: req.body
+  });
+  next();
+}, subscriptionRoutes);
+console.log('Subscription routes mounted.');
 
 // Error handling middleware
 app.use(errorHandler);
@@ -95,11 +110,13 @@ app.get("/", async (req, res) => {
     const result = await pool.query('SELECT current_database()');
     res.send(`The database name is: ${result.rows[0].current_database}`);
   } catch (error) {
-    res.status(500).send('Database connection failed.');
+    console.error('Database error:', error);
+    res.status(500).send('Error connecting to database');
   }
 });
 
-// Server start
+// Start the server
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`💻 Test the server at http://localhost:${PORT}`);
 });
