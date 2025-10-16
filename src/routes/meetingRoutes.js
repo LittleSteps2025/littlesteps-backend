@@ -7,6 +7,7 @@ import {
   createMeeting,
   updateMeeting,
   updateMeetingResponse,
+  updateMeetingStatus,
   deleteMeeting,
   searchMeetings
 } from '../controllers/meetingController.js';
@@ -36,6 +37,9 @@ router.put('/:meeting_id', updateMeeting);
 
 // Update meeting response only
 router.patch('/:meeting_id/response', updateMeetingResponse);
+
+// Update meeting status only
+router.patch('/:meeting_id/status', updateMeetingStatus);
 
 // Delete meeting
 router.delete('/:meeting_id', deleteMeeting);

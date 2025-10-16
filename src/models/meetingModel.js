@@ -122,17 +122,17 @@ class MeetingModel {
 
   // Create new meeting
   async create(meetingData) {
-    const { child_id, recipient, meeting_date, meeting_time, reason, response = null } = meetingData;
+    const { child_id, recipient, meeting_date, meeting_time, reason, response = null, status = 'pending' } = meetingData;
     
     const query = `
-      INSERT INTO meeting (child_id, recipient, meeting_date, meeting_time, reason, response)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO meeting (child_id, recipient, meeting_date, meeting_time, reason, response, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `;
     
     try {
       const { rows } = await pool.query(query, [
-        child_id, recipient, meeting_date, meeting_time, reason, response
+        child_id, recipient, meeting_date, meeting_time, reason, response, status
       ]);
       return rows[0];
     } catch (error) {
@@ -145,18 +145,20 @@ class MeetingModel {
   async update(meeting_id, meetingData) {
     const { meeting_date, meeting_time, reason, response } = meetingData;
     
-    const query = `
+    const updateQuery = `
       UPDATE meeting 
       SET meeting_date = $1, meeting_time = $2, reason = $3, response = $4
       WHERE meeting_id = $5
-      RETURNING *
+      RETURNING meeting_id
     `;
     
     try {
-      const { rows } = await pool.query(query, [
+      const { rows } = await pool.query(updateQuery, [
         meeting_date, meeting_time, reason, response, meeting_id
       ]);
-      return rows[0];
+      
+      // Fetch the complete meeting data with joins
+      return await this.findById(meeting_id);
     } catch (error) {
       console.error('Error updating meeting:', error);
       throw error;
@@ -165,40 +167,78 @@ class MeetingModel {
 
   // Update meeting response only
   async updateResponse(meeting_id, response) {
-    const query = `
+    const updateQuery = `
       UPDATE meeting 
       SET response = $1, updated_at = CURRENT_TIMESTAMP
       WHERE meeting_id = $2
-      RETURNING *
+      RETURNING meeting_id
     `;
     
     try {
-      const { rows } = await pool.query(query, [response || null, meeting_id]);
+      const { rows } = await pool.query(updateQuery, [response || null, meeting_id]);
       if (rows.length === 0) {
         throw new Error('No meeting found with the provided ID');
       }
-      return rows[0];
+      
+      // Fetch the complete meeting data with joins
+      return await this.findById(meeting_id);
     } catch (error) {
       console.error('Error updating meeting response:', error);
       throw error;
     }
   }
 
-  // Reschedule meeting (only date and time)
-  async reschedule(meeting_id, meeting_date, meeting_time, response = null) {
-    const query = `
+  // Update meeting status only
+  async updateStatus(meeting_id, status) {
+    const updateQuery = `
       UPDATE meeting 
-      SET meeting_date = $1, meeting_time = $2, response = COALESCE($3, response), updated_at = CURRENT_TIMESTAMP
-      WHERE meeting_id = $4
-      RETURNING *
+      SET status = $1, updated_at = CURRENT_TIMESTAMP
+      WHERE meeting_id = $2
+      RETURNING meeting_id
     `;
     
     try {
-      const { rows } = await pool.query(query, [meeting_date, meeting_time, response, meeting_id]);
+      console.log('=== MODEL: updateStatus ===');
+      console.log('Meeting ID:', meeting_id);
+      console.log('Status:', status);
+      console.log('Query:', updateQuery);
+      
+      const { rows } = await pool.query(updateQuery, [status, meeting_id]);
+      console.log('Update query result rows:', rows);
+      
+      if (rows.length === 0) {
+        console.log('No meeting found with ID:', meeting_id);
+        throw new Error('No meeting found with the provided ID');
+      }
+      
+      // Fetch the complete meeting data with joins
+      console.log('Fetching updated meeting data...');
+      const updatedMeeting = await this.findById(meeting_id);
+      console.log('Updated meeting data:', updatedMeeting);
+      return updatedMeeting;
+    } catch (error) {
+      console.error('Error updating meeting status:', error);
+      throw error;
+    }
+  }
+
+  // Reschedule meeting (only date and time)
+  async reschedule(meeting_id, meeting_date, meeting_time, response = null) {
+    const updateQuery = `
+      UPDATE meeting 
+      SET meeting_date = $1, meeting_time = $2, response = COALESCE($3, response), updated_at = CURRENT_TIMESTAMP
+      WHERE meeting_id = $4
+      RETURNING meeting_id
+    `;
+    
+    try {
+      const { rows } = await pool.query(updateQuery, [meeting_date, meeting_time, response, meeting_id]);
       if (rows.length === 0) {
         throw new Error('No meeting found with the provided ID');
       }
-      return rows[0];
+      
+      // Fetch the complete meeting data with joins
+      return await this.findById(meeting_id);
     } catch (error) {
       console.error('Error rescheduling meeting:', error);
       throw error;

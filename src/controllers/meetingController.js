@@ -134,7 +134,8 @@ export const createMeeting = async (req, res) => {
       meeting_date,
       meeting_time,
       reason,
-      response: response || null
+      response: response || null,
+      status: 'pending' // Default status for new meetings
     };
     
     const newMeeting = await meetingModel.create(meetingData);
@@ -306,6 +307,76 @@ export const updateMeetingResponse = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to update meeting response',
+      error: error.message
+    });
+  }
+};
+
+// Update meeting status only (for supervisor meetings)
+export const updateMeetingStatus = async (req, res) => {
+  try {
+    const { meeting_id } = req.params;
+    const { status } = req.body;
+    
+    console.log('=== UPDATE STATUS REQUEST ===');
+    console.log('Meeting ID:', meeting_id);
+    console.log('New Status:', status);
+    console.log('Request Body:', req.body);
+    
+    // Validate status field
+    const validStatuses = ['pending', 'confirmed', 'cancelled'];
+    if (!status || !validStatuses.includes(status.toLowerCase())) {
+      console.log('Invalid status:', status);
+      return res.status(400).json({
+        success: false,
+        message: 'Status must be one of: pending, confirmed, or cancelled'
+      });
+    }
+    
+    // First check if meeting exists and belongs to supervisor
+    const existingMeeting = await meetingModel.findById(meeting_id);
+    console.log('Existing Meeting:', existingMeeting);
+    
+    if (!existingMeeting) {
+      console.log('Meeting not found');
+      return res.status(404).json({
+        success: false,
+        message: 'Meeting not found'
+      });
+    }
+    
+    if (existingMeeting.recipient !== 'supervisor') {
+      console.log('Not a supervisor meeting');
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Can only update supervisor meetings'
+      });
+    }
+    
+    // Update the status
+    console.log('Updating status to:', status.toLowerCase());
+    const updatedMeeting = await meetingModel.updateStatus(meeting_id, status.toLowerCase());
+    console.log('Updated Meeting:', updatedMeeting);
+    
+    if (!updatedMeeting) {
+      console.log('Failed to update in database');
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to update meeting status in database'
+      });
+    }
+    
+    console.log('=== STATUS UPDATE SUCCESS ===');
+    res.status(200).json({
+      success: true,
+      data: updatedMeeting,
+      message: `Meeting status updated to ${status.toLowerCase()} successfully`
+    });
+  } catch (error) {
+    console.error('Error updating meeting status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update meeting status',
       error: error.message
     });
   }
