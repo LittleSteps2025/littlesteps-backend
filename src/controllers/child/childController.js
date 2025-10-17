@@ -359,8 +359,10 @@ class ChildController {
   }
   async getPackageById(req, res) {
     try {
-      const { id } = req.params;
-      console.log("Getting package for child ID:", id);
+
+      const { id: child_id } = req.params;
+      console.log("Getting package for child ID:", child_id);
+
 
       // Validate id is a number
       if (!id || isNaN(id)) {
