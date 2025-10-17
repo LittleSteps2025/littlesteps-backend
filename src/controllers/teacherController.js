@@ -1,6 +1,8 @@
 import admin from "firebase-admin";
-import credentials from "../../firebaseServiceAccount.json" with { type: 'json' };
+import { readFileSync } from 'fs';
 import pool from '../config/db.js';
+
+const credentials = JSON.parse(readFileSync('./firebaseServiceAccount.json', 'utf8'));
 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
@@ -462,6 +464,133 @@ export const getAvailableGroups = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch available groups',
+      error: error.message
+    });
+  }
+};
+
+export const teacherLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required'
+      });
+    }
+
+    // First, get user details from PostgreSQL
+    const userResult = await pool.query(
+      `SELECT u.*, t.teacher_id, t.cv, t.group_id
+       FROM "user" u 
+       LEFT JOIN teacher t ON u.user_id = t.user_id 
+       WHERE u.email = $1 AND u.role IN ('teacher', 'supervisor') AND u.status = 'active'`,
+      [email]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+    const dbUser = userResult.rows[0];
+
+    // Verify password using Firebase Auth REST API
+    // You need to add your Firebase Web API Key to .env file
+    const firebaseApiKey = process.env.FIREBASE_API_KEY;
+    
+    if (!firebaseApiKey) {
+      console.error('FIREBASE_API_KEY not found in environment variables');
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error'
+      });
+    }
+
+    try {
+      // Use Firebase Web API to verify password
+      const firebaseResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+          returnSecureToken: true
+        })
+      });
+
+      const firebaseData = await firebaseResponse.json();
+
+      if (!firebaseResponse.ok) {
+        console.error('Firebase auth failed:', firebaseData);
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid email or password'
+        });
+      }
+
+      // Get Firebase user details using Admin SDK
+      const firebaseUser = await admin.auth().getUser(firebaseData.localId);
+      
+      // Check if Firebase user is disabled
+      if (firebaseUser.disabled) {
+        return res.status(403).json({
+          success: false,
+          message: 'Account is disabled'
+        });
+      }
+
+      // Create a custom token for the user (password has been verified)
+      const customToken = await admin.auth().createCustomToken(firebaseUser.uid, {
+        role: dbUser.role,
+        userId: dbUser.user_id,
+        email: dbUser.email
+      });
+
+      console.log(`✅ Login successful for ${email} (${dbUser.role})`);
+
+      res.json({
+        success: true,
+        message: 'Login successful',
+        user: {
+          id: dbUser.user_id,
+          firebaseUid: firebaseUser.uid,
+          name: dbUser.name,
+          email: dbUser.email,
+          role: dbUser.role,
+          nic: dbUser.nic,
+          address: dbUser.address,
+          phone: dbUser.phone,
+          image: dbUser.image,
+          status: dbUser.status,
+          created_at: dbUser.created_at,
+          // Include supervisor-specific data if it exists
+          sup_id: dbUser.sup_id || null,
+          cv: dbUser.cv || null,
+          group_id: dbUser.group_id || null
+        },
+        customToken: customToken
+      });
+
+    } catch (authError) {
+      console.error('Firebase authentication failed:', authError);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Supervisor login error:', error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Login failed',
       error: error.message
     });
   }

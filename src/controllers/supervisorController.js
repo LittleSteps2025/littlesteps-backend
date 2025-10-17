@@ -1,7 +1,9 @@
 import admin from "firebase-admin";
-import credentials from "../../firebaseServiceAccount.json" with { type: 'json' };
+import { readFileSync } from 'fs';
 import pool from '../config/db.js';
 import bcrypt from 'bcrypt';
+
+const credentials = JSON.parse(readFileSync('./firebaseServiceAccount.json', 'utf8'));
 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {

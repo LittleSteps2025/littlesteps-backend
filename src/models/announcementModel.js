@@ -57,3 +57,4 @@ const announcementModel = {
 };
 
 export default announcementModel;
+
