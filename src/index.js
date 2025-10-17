@@ -17,14 +17,17 @@ import teacherChildRoutes from "./routes/teacher/childRoutes.js";
 import eventRoutes from "./routes/teacher/eventRoutes.js";
 
 // Parent Routes
-import parentRoutes from "./routes/parent/parentRoutes.js";
-import dailyRecordRoutes from "./routes/parent/dailyRecordRoutes.js";
-import announcementRoutes from "./routes/parent/announcementRoutes.js";
-import childrenRoutes from "./routes/parent/childrenRoutes.js";
-import viewReportRoutes from "./routes/parent/viewReportRoutes.js";
-import healthRecordRoutes from "./routes/parent/healthRecordRoutes.js";
-import meetingRoutes from "./routes/parent/meetingRoutes.js";
-import complaintRoutes from "./routes/parent/complaintRoutes.js";
+
+import parentRoutes from './routes/parent/parentRoutes.js';
+import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
+import announcementRoutes from './routes/parent/announcementRoutes.js';
+import childrenRoutes from './routes/parent/childrenRoutes.js';
+import viewReportRoutes from './routes/parent/viewReportRoutes.js';
+import healthRecordRoutes from './routes/parent/healthRecordRoutes.js';
+import meetingRoutes from './routes/parent/meetingRoutes.js';
+import complaintRoutes from './routes/parent/complaintRoutes.js';
+import guardiansRoutes from './routes/parent/guardiansRoutes.js';
+
 
 // Teacher Routes
 import appointmentsRoutes from "./routes/teacher/appointmentsRoutes.js";
@@ -60,11 +63,14 @@ app.use("/api/teachers/child", teacherChildRoutes);
 app.use("/api/events", eventRoutes);
 
 // Parent Routes
-app.use("/api/parents", parentRoutes);
-app.use("/api/daily-records", dailyRecordRoutes);
-app.use("/api/parent/announcements", announcementRoutes);
-app.use("/api/parent/children", childrenRoutes);
-app.use("/api/parent/reports", viewReportRoutes);
+
+app.use('/api/parents', parentRoutes);
+app.use('/api/daily-records', dailyRecordRoutes);
+app.use('/api/parent/announcements', announcementRoutes);
+app.use('/api/parent/children', childrenRoutes);
+app.use('/api/parent/reports', viewReportRoutes);
+app.use('/api/parent/guardians', guardiansRoutes);
+
 
 // Supervisor Routes
 app.use("/api/supervisors", supervisorRoutes);
