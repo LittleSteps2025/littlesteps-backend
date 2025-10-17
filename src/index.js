@@ -14,6 +14,8 @@ import reportRoutes from './routes/teacher/reportRoutes.js';
 import guardianRoutes from './routes/teacher/guardianRoutes.js';
 import teacherChildRoutes from './routes/teacher/childRoutes.js';
 import eventRoutes from './routes/teacher/eventRoutes.js';
+import profileRoutes from './routes/teacher/profileRoutes.js';
+import childRoutes from './routes/teacher/childRoutes.js';
 
 // Parent Routes
 import parentRoutes from './routes/parent/parentRoutes.js';
@@ -57,6 +59,8 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/guardians', guardianRoutes);
 app.use('/api/teachers/child', teacherChildRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/child', childRoutes);
 
 // Parent Routes
 app.use('/api/parents', parentRoutes);
@@ -78,7 +82,7 @@ app.use('/api/parent/complaint', complaintRoutes);
 
 // Appointment Routes
 app.use('/api/appointments', appointmentsRoutes);
-
+app.use('/api/teacherprofile', profileRoutes);
 // Payment Routes
 app.use('/api/payment', paymentRoutes);
 
