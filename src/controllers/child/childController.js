@@ -359,18 +359,20 @@ class ChildController {
   }
   async getPackageById(req, res) {
     try {
+
       const { id: child_id } = req.params;
       console.log("Getting package for child ID:", child_id);
 
-      // Validate child_id is a number
-      if (!child_id || isNaN(child_id)) {
+
+      // Validate id is a number
+      if (!id || isNaN(id)) {
         return res.status(400).json({
           message: "Invalid child ID. Must be a number.",
-          received: child_id,
+          received: id,
         });
       }
 
-      const packageData = await childModel.getPackageById(parseInt(child_id));
+      const packageData = await childModel.getPackageById(parseInt(id));
       console.log("Package data retrieved:", packageData);
 
       if (packageData) {
@@ -382,7 +384,7 @@ class ChildController {
         res.status(404).json({
           success: false,
           message: "Package not found for the given child ID",
-          child_id: child_id,
+          child_id: id,
         });
       }
     } catch (error) {
