@@ -18,6 +18,14 @@ import eventRoutes from './routes/teacher/eventRoutes.js';
 // Parent Routes
 import parentRoutes from './routes/parent/parentRoutes.js';
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
+import childRoutes from './routes/child/childRoutes.js'; // Child routes
+import eventRoutesDamsara from './routes/eventRoutes.js';
+import announcementRoutesDamsara from './routes/announcementRoutes.js';
+import meetingRoutesDamsara from './routes/meetingRoutes.js'; // ✅ Meeting routes
+import complaintRoutesDamsara from './routes/complaintRoutes.js'; // ✅ Complaint routes
+import supervisorReportRoutes from './routes/supervisorReportRoutes.js'; // ✅ Supervisor Report routes
+import dashboardRoutes from './routes/dashboardRoutes.js'; // ✅ Dashboard routes
+
 import announcementRoutes from './routes/parent/announcementRoutes.js';
 import childrenRoutes from './routes/parent/childrenRoutes.js';
 import viewReportRoutes from './routes/parent/viewReportRoutes.js';
@@ -60,6 +68,20 @@ app.use('/api/events', eventRoutes);
 
 // Parent Routes
 app.use('/api/parents', parentRoutes);
+
+app.use('/api', dailyRecordRoutes);
+app.use('/api/child', childRoutes); // Child routes
+app.use('/api/events', eventRoutesDamsara);
+app.use('/api/announcements', announcementRoutesDamsara);
+app.use('/api/meetings', meetingRoutesDamsara); // ✅ Meeting routes
+app.use('/api/complaints', complaintRoutesDamsara); // ✅ Complaint routes
+app.use('/api/supervisor-reports', supervisorReportRoutes); // ✅ Supervisor Report routes
+app.use('/api/dashboard', dashboardRoutes); // ✅ Dashboard routes - NEW
+// Error handling middleware
+app.use(errorHandler);
+
+// Create tables before starting the server
+// createUserTable();
 app.use('/api/daily-records', dailyRecordRoutes);
 app.use('/api/parent/announcements', announcementRoutes);
 app.use('/api/parent/children', childrenRoutes);
@@ -87,6 +109,7 @@ app.use(errorHandler);
 
 // Create password reset tables
 // createPasswordResetTables();
+
 
 // PostgreSQL test route
 
