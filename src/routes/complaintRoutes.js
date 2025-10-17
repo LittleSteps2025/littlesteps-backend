@@ -6,11 +6,12 @@ import {
 
 const router = express.Router();
 
-router.get('/', getAllComplaints);
+// Specific routes must come before parameterized routes
 router.get('/search', searchComplaints);
-router.get('/:complaint_id', getComplaintById);
-router.get('/child/:child_id', getComplaintsByChildId);
 router.get('/recipient/:recipient', getComplaintsByRecipient);
+router.get('/child/:child_id', getComplaintsByChildId);
+router.get('/', getAllComplaints);
+router.get('/:complaint_id', getComplaintById);
 router.post('/', createComplaint);
 router.put('/:complaint_id', updateComplaint);
 router.patch('/:complaint_id/status', updateComplaintStatus);

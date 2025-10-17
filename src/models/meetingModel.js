@@ -169,7 +169,7 @@ class MeetingModel {
   async updateResponse(meeting_id, response) {
     const updateQuery = `
       UPDATE meeting 
-      SET response = $1, updated_at = CURRENT_TIMESTAMP
+      SET response = $1
       WHERE meeting_id = $2
       RETURNING meeting_id
     `;
@@ -192,7 +192,7 @@ class MeetingModel {
   async updateStatus(meeting_id, status) {
     const updateQuery = `
       UPDATE meeting 
-      SET status = $1, updated_at = CURRENT_TIMESTAMP
+      SET status = $1
       WHERE meeting_id = $2
       RETURNING meeting_id
     `;
@@ -226,7 +226,7 @@ class MeetingModel {
   async reschedule(meeting_id, meeting_date, meeting_time, response = null) {
     const updateQuery = `
       UPDATE meeting 
-      SET meeting_date = $1, meeting_time = $2, response = COALESCE($3, response), updated_at = CURRENT_TIMESTAMP
+      SET meeting_date = $1, meeting_time = $2, response = COALESCE($3, response)
       WHERE meeting_id = $4
       RETURNING meeting_id
     `;

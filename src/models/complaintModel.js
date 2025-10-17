@@ -146,57 +146,133 @@ class ComplaintModel {
   async update(complaint_id, complaintData) {
     const { date, subject, recipient, description, status, action } = complaintData;
     
-    const query = `
-      UPDATE complaints 
-      SET date = $1, subject = $2, recipient = $3, description = $4, status = $5, action = $6
-      WHERE complaint_id = $7
-      RETURNING *
-    `;
+    const client = await pool.connect();
     
     try {
-      const { rows } = await pool.query(query, [
+      await client.query('BEGIN');
+      
+      // Disable trigger for this transaction
+      await client.query('ALTER TABLE complaints DISABLE TRIGGER update_complaints_updated_at;');
+      
+      const query = `
+        UPDATE complaints 
+        SET date = $1, subject = $2, recipient = $3, description = $4, status = $5, action = $6
+        WHERE complaint_id = $7
+        RETURNING *
+      `;
+      
+      const { rows } = await client.query(query, [
         date, subject, recipient, description, status, action, complaint_id
       ]);
+      
+      // Re-enable trigger
+      await client.query('ALTER TABLE complaints ENABLE TRIGGER update_complaints_updated_at;');
+      
+      await client.query('COMMIT');
+      
       return rows[0];
     } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      // Make sure to re-enable trigger even if error occurs
+      await client.query('ALTER TABLE complaints ENABLE TRIGGER update_complaints_updated_at;').catch(() => {});
       console.error('Error updating complaint:', error);
       throw error;
+    } finally {
+      client.release();
     }
   }
 
   // Update complaint status only
   async updateStatus(complaint_id, status) {
-    const query = `
-      UPDATE complaints 
-      SET status = $1
-      WHERE complaint_id = $2
-      RETURNING *
-    `;
+    const client = await pool.connect();
     
     try {
-      const { rows } = await pool.query(query, [status, complaint_id]);
+      console.log(`Updating complaint ${complaint_id} status to: ${status}`);
+      
+      await client.query('BEGIN');
+      
+      // Disable trigger for this transaction
+      await client.query('ALTER TABLE complaints DISABLE TRIGGER update_complaints_updated_at;');
+      
+      const query = `
+        UPDATE complaints 
+        SET status = $1
+        WHERE complaint_id = $2
+        RETURNING *
+      `;
+      
+      const { rows } = await client.query(query, [status, complaint_id]);
+      
+      // Re-enable trigger
+      await client.query('ALTER TABLE complaints ENABLE TRIGGER update_complaints_updated_at;');
+      
+      await client.query('COMMIT');
+      
+      if (rows[0]) {
+        console.log(`Status updated successfully for complaint ${complaint_id}`);
+        // Return full complaint details with child and parent info
+        const fullComplaint = await this.findById(complaint_id);
+        console.log(`Retrieved full complaint details:`, fullComplaint);
+        return fullComplaint;
+      }
+      
+      console.log(`No complaint found with id ${complaint_id}`);
       return rows[0];
     } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      // Make sure to re-enable trigger even if error occurs
+      await client.query('ALTER TABLE complaints ENABLE TRIGGER update_complaints_updated_at;').catch(() => {});
       console.error('Error updating complaint status:', error);
       throw error;
+    } finally {
+      client.release();
     }
   }
 
   // Update complaint action only
   async updateAction(complaint_id, action) {
-    const query = `
-      UPDATE complaints 
-      SET action = $1
-      WHERE complaint_id = $2
-      RETURNING *
-    `;
+    const client = await pool.connect();
     
     try {
-      const { rows } = await pool.query(query, [action, complaint_id]);
+      console.log(`Updating complaint ${complaint_id} action to:`, action);
+      
+      await client.query('BEGIN');
+      
+      // Disable trigger for this transaction
+      await client.query('ALTER TABLE complaints DISABLE TRIGGER update_complaints_updated_at;');
+      
+      const query = `
+        UPDATE complaints 
+        SET action = $1
+        WHERE complaint_id = $2
+        RETURNING *
+      `;
+      
+      const { rows } = await client.query(query, [action, complaint_id]);
+      
+      // Re-enable trigger
+      await client.query('ALTER TABLE complaints ENABLE TRIGGER update_complaints_updated_at;');
+      
+      await client.query('COMMIT');
+      
+      if (rows[0]) {
+        console.log(`Action updated successfully for complaint ${complaint_id}`);
+        // Return full complaint details with child and parent info
+        const fullComplaint = await this.findById(complaint_id);
+        console.log(`Retrieved full complaint details:`, fullComplaint);
+        return fullComplaint;
+      }
+      
+      console.log(`No complaint found with id ${complaint_id}`);
       return rows[0];
     } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      // Make sure to re-enable trigger even if error occurs
+      await client.query('ALTER TABLE complaints ENABLE TRIGGER update_complaints_updated_at;').catch(() => {});
       console.error('Error updating complaint action:', error);
       throw error;
+    } finally {
+      client.release();
     }
   }
 

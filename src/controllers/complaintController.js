@@ -191,6 +191,8 @@ export const updateComplaintStatus = async (req, res) => {
     const { complaint_id } = req.params;
     const { status } = req.body;
     
+    console.log(`Received status update request for complaint ${complaint_id}:`, { status });
+    
     if (!status) {
       return res.status(400).json({
         success: false,
@@ -206,6 +208,8 @@ export const updateComplaintStatus = async (req, res) => {
         message: 'Complaint not found'
       });
     }
+    
+    console.log(`Status updated successfully for complaint ${complaint_id}`);
     
     res.status(200).json({
       success: true,
@@ -228,10 +232,13 @@ export const updateComplaintAction = async (req, res) => {
     const { complaint_id } = req.params;
     const { action } = req.body;
     
-    if (!action) {
+    console.log(`Received action update request for complaint ${complaint_id}:`, { action });
+    
+    // Allow empty action (to clear it)
+    if (action === undefined) {
       return res.status(400).json({
         success: false,
-        message: 'Action is required'
+        message: 'Action field is required (can be empty string)'
       });
     }
     
@@ -243,6 +250,8 @@ export const updateComplaintAction = async (req, res) => {
         message: 'Complaint not found'
       });
     }
+    
+    console.log(`Action updated successfully for complaint ${complaint_id}`);
     
     res.status(200).json({
       success: true,
