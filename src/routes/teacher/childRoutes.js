@@ -9,10 +9,12 @@ import {
   // updateEmergencyNotes,
   getChildrenWithParents,
   saveEmergencyNote,
+
   getParentFCMToken,
 } from "../../controllers/teacher/childController.js";
 import authenticateUser from "../../middlewares/firebaseAuthMiddleware.js";
 // import childController from "../../controllers/child/childController.js";
+
 
 const router = express.Router();
 
@@ -33,7 +35,12 @@ router.get("/filter/groups", getAllGroups);
 
 // ✅ Get all children with their parent info (optional for list view)
 // Example: GET /api/children/with-parents
-router.get("/with-parents", getChildrenWithParents);
+
+router.get('/with-parents', getChildrenWithParents);
+
+router.post('/:childId/notes', authenticateUser, saveEmergencyNote);
+// router.get("/package/:child_id", getPackageById);
+
 
 router.post("/:childId/notes", authenticateUser, saveEmergencyNote);
 // router.get("/package/:child_id", childController.getPackageById);
