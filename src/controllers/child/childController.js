@@ -1,10 +1,9 @@
-import bcrypt from 'bcrypt';
-import pool from '../../config/db.js';
+import bcrypt from "bcrypt";
+import pool from "../../config/db.js";
 import childModel from "../../models/child/childModel.js";
 import { getParentByNic } from "../../models/supervisorModel.js";
 import { getAllParents } from "../../models/parent/parentModel.js";
 import { sendParentVerificationEmail } from "../../services/emailService.js";
-
 
 
 // Helper function to generate 4-digit verification code
@@ -95,7 +94,7 @@ class ChildController {
       const existParent = await getParentByNic(childData.parentNIC);
       console.log("Received child data:", childData);
       console.log("Parent found by NIC:", existParent);
-      
+
       // Generate verification code at the start
       const verificationCode = generateVerificationCode();
       console.log("Generated verification code:", verificationCode);
@@ -361,18 +360,20 @@ class ChildController {
   }
   async getPackageById(req, res) {
     try {
-      const { child_id } = req.params;
+
+      const { id: child_id } = req.params;
       console.log("Getting package for child ID:", child_id);
 
-      // Validate child_id is a number
-      if (!child_id || isNaN(child_id)) {
+
+      // Validate id is a number
+      if (!id || isNaN(id)) {
         return res.status(400).json({
           message: "Invalid child ID. Must be a number.",
-          received: child_id,
+          received: id,
         });
       }
 
-      const packageData = await childModel.getPackageById(parseInt(child_id));
+      const packageData = await childModel.getPackageById(parseInt(id));
       console.log("Package data retrieved:", packageData);
 
       if (packageData) {
@@ -384,7 +385,7 @@ class ChildController {
         res.status(404).json({
           success: false,
           message: "Package not found for the given child ID",
-          child_id: child_id,
+          child_id: id,
         });
       }
     } catch (error) {
