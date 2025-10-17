@@ -32,10 +32,19 @@ export const createAnnouncement = async ({
   return result.rows[0];
 };
 
-// Get all announcements (with author info)
+// Get all announcements (with author info and published_by object)
 export const getAllAnnouncements = async () => {
   const result = await pool.query(
-    `SELECT a.*, u.name AS author_name, u.email AS author_email
+    `SELECT 
+       a.*,
+       u.name AS author_name, 
+       u.email AS author_email,
+       u.role AS author_role,
+       jsonb_build_object(
+         'id', u.user_id,
+         'name', u.name,
+         'role', u.role
+       ) as published_by
      FROM announcement a
      LEFT JOIN "user" u ON a.user_id = u.user_id
      ORDER BY a.created_at DESC`
@@ -46,7 +55,16 @@ export const getAllAnnouncements = async () => {
 // Get a single announcement by ID
 export const getAnnouncementById = async (ann_id) => {
   const result = await pool.query(
-    `SELECT a.*, u.name AS author_name, u.email AS author_email
+    `SELECT 
+       a.*,
+       u.name AS author_name, 
+       u.email AS author_email,
+       u.role AS author_role,
+       jsonb_build_object(
+         'id', u.user_id,
+         'name', u.name,
+         'role', u.role
+       ) as published_by
      FROM announcement a
      LEFT JOIN "user" u ON a.user_id = u.user_id
      WHERE a.ann_id = $1`,

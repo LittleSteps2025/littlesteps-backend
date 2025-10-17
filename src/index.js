@@ -36,6 +36,11 @@ import announcementsRoutes from './routes/announcementsRoute.js';
 
 // Payment Routes
 import paymentRoutes from './routes/payment/paymentRoute.js';
+import adminPaymentRoutes from './routes/payment/adminPaymentRoute.js';
+
+// Admin Routes
+import adminDashboardRoutes from './routes/admin/dashboardRoutes.js';
+import adminReportsRoutes from './routes/admin/reportsRoutes.js';
 
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 
@@ -47,6 +52,12 @@ const PORT = process.env.PORT || 5001;
 // Middleware
 app.use(express.json());
 app.use(cors());
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
 
 
 // Core Routes
@@ -83,6 +94,13 @@ app.use('/api/appointments', appointmentsRoutes);
 
 // Payment Routes
 app.use('/api/payment', paymentRoutes);
+app.use('/api/admin/payments', adminPaymentRoutes);
+
+// Admin Dashboard Routes
+app.use('/api/admin/dashboard', adminDashboardRoutes);
+
+// Admin Reports Routes
+app.use('/api/admin/reports', adminReportsRoutes);
 
 // Subscription Routes
 console.log('Mounting subscription routes...');
