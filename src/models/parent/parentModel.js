@@ -14,7 +14,7 @@ export const createParent = async (parentData) => {
       VALUES ($1, $2, $3, $4)
       RETURNING id, email, name, verified, created_at, updated_at;
     `;
-
+ 
   try {
     const result = await pool.query(query, [
       email,
