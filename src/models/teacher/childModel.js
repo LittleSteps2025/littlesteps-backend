@@ -10,6 +10,7 @@ const ChildModel = {
         c.child_id AS id,
         c.name,
         c.age,
+        c.image,
         c.gender,
         g.name AS group,
         CASE
