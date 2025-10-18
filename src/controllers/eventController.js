@@ -37,7 +37,6 @@ const eventController = {
 
       const newEvent = await eventModel.create({ 
         user_id, 
-
         image: image || null, 
         date,
         time,

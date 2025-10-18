@@ -6,6 +6,12 @@ const router = express.Router();
 // Main dashboard stats endpoint - returns all stats in one call
 router.get('/stats', dashboardController.getDashboardStats);
 
+// Stats by period (today, week, month)
+router.get('/stats/period', dashboardController.getStatsByPeriod);
+
+// Chart data for graphs (week, month)
+router.get('/charts', dashboardController.getChartData);
+
 // Individual stat endpoints (optional, for granular access)
 router.get('/children/count', dashboardController.getChildrenCount);
 router.get('/parents/count', dashboardController.getParentsCount);

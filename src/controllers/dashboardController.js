@@ -183,6 +183,70 @@ class DashboardController {
       });
     }
   }
+
+  /**
+   * Get stats by period (today, week, month)
+   * GET /api/dashboard/stats/period?period=today|week|month
+   */
+  async getStatsByPeriod(req, res) {
+    try {
+      const period = req.query.period || 'today';
+      
+      if (!['today', 'week', 'month'].includes(period)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid period. Use: today, week, or month'
+        });
+      }
+
+      const stats = await dashboardModel.getStatsByPeriod(period);
+      
+      res.status(200).json({
+        success: true,
+        data: stats,
+        period: period
+      });
+    } catch (error) {
+      console.error('Error fetching stats by period:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch stats by period',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Get chart data for graphs
+   * GET /api/dashboard/charts?period=week|month
+   */
+  async getChartData(req, res) {
+    try {
+      const period = req.query.period || 'week';
+      
+      if (!['week', 'month'].includes(period)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid period. Use: week or month'
+        });
+      }
+
+      const chartData = await dashboardModel.getChartData(period);
+      
+      res.status(200).json({
+        success: true,
+        data: chartData,
+        period: period
+      });
+    } catch (error) {
+      console.error('Error fetching chart data:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch chart data',
+        error: error.message
+      });
+    }
+  }
 }
 
 export default new DashboardController();
