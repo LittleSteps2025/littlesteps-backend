@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import pool from './config/db.js';
+import userRoutes from './routes/userRoutes.js'; // User routes
+import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes
 import errorHandler from './middlewares/errorHandler.js';
 
 // Core Routes
@@ -19,18 +21,32 @@ import appointmentsRoutes from './routes/teacher/appointmentsRoutes.js';
 // Parent Routes
 import parentRoutes from './routes/parent/parentRoutes.js';
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
-import announcementRoutes from './routes/parent/announcementRoutes.js';
 import childrenRoutes from './routes/parent/childrenRoutes.js';
 import viewReportRoutes from './routes/parent/viewReportRoutes.js';
 import healthRecordRoutes from './routes/parent/healthRecordRoutes.js';
-import meetingRoutes from './routes/parent/meetingRoutes.js';
-import complaintRoutes from './routes/parent/complaintRoutes.js';
-
+import childRoutes from './routes/child/childRoutes.js'; // Child routes
+import eventRoutes from './routes/eventRoutes.js';
+import announcementRoutes from './routes/announcementRoutes.js';
+import meetingRoutes from './routes/meetingRoutes.js'; // ✅ Meeting routes
+import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
+import complaintRoutes from './routes/complaintRoutes.js'; // ✅ Complaint routes
+import supervisorReportRoutes from './routes/supervisorReportRoutes.js'; // ✅ Supervisor Report routes
+import dashboardRoutes from './routes/dashboardRoutes.js'; // ✅ Dashboard route
 // Supervisor Routes
-import supervisorRoutes from './routes/supervisor/supervisorRoutes.js';  // changed path
-import childSupervisorRoutes from './routes/supervisor/childRoutes.js';  // changed path
-import supervisorEventRoutes from './routes/supervisor/eventRoutes.js';  // changed path
-import announcementsRoutes from './routes/supervisor/announcementsRoute.js';  // changed path
+import supervisorRoutes from './routes/supervisorRoutes.js';
+import childSupervisorRoutes from './routes/child/childRoutes.js';
+import supervisorEventRoutes from './routes/eventRoutes.js';
+import announcementsRoutes from './routes/announcementsRoute.js';
+import appointmentRoutes from './routes/appointmentRoute.js';
+import supervisorPaymentRoutes from './routes/supervisor/supervisorPaymentRoutes.js';
+
+// Payment Routes
+import paymentRoutes from './routes/payment/paymentRoute.js';
+import adminPaymentRoutes from './routes/payment/adminPaymentRoute.js';
+
+// Admin Routes
+import adminDashboardRoutes from './routes/admin/dashboardRoutes.js';
+import adminReportsRoutes from './routes/admin/reportsRoutes.js';
 
 // Payment & Admin Routes
 import paymentRoutes from './routes/payment/paymentRoute.js';
@@ -54,6 +70,8 @@ app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`);
   next();
 });
+
+
 
 // Core Routes
 app.use('/api/users', userRoutes);
@@ -81,7 +99,45 @@ app.use('/api/parent/complaints', complaintRoutes);
 app.use('/api/supervisor', supervisorRoutes);
 app.use('/api/supervisor/children', childSupervisorRoutes);
 app.use('/api/supervisor/events', supervisorEventRoutes);
-app.use('/api/supervisor/announcements', announcementsRoutes);
+app.use('/api/announcements', announcementsRoutes);//chathumini
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/supervisor/payments', supervisorPaymentRoutes);
+
+// Payment Routes
+app.use('/api/payment', paymentRoutes);
+app.use('/api/admin/payments', adminPaymentRoutes);
+
+// Admin Dashboard Routes
+app.use('/api/admin/dashboard', adminDashboardRoutes);
+
+// Admin Reports Routes
+app.use('/api/admin/reports', adminReportsRoutes);
+
+//Routes
+
+// app.use('/api', dailyRecordRoutes);
+
+//Error handling middleware 
+// app.use(errorHandler)
+// //create table before starting the server
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+//Testing POSTGRES connection
+
+// Routes
+app.use('/api/users', userRoutes); // Example: http://localhost:3001/api/users
+app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api/reports
+app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
+app.use('/api/supervisors', supervisorRoutes); // ✅ Supervisor and Admin routes
+app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
+app.use('/api/parents', parentRoutes);
+app.use('/api', dailyRecordRoutes);
+app.use('/api/child', childRoutes); // Child routes
+app.use('/api/events', eventRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/meetings', meetingRoutes); // ✅ Meeting routes
+app.use('/api/complaints', complaintRoutes); // ✅ Complaint routes
+app.use('/api/supervisor-reports', supervisorReportRoutes); // ✅ Supervisor Report routes
+app.use('/api/dashboard', dashboardRoutes); // ✅ Dashboard routes - NEW
 
 // Admin Routes
 app.use('/api/admin/dashboard', adminDashboardRoutes);

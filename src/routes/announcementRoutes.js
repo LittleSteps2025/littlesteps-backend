@@ -1,21 +1,27 @@
-import express from 'express';
-import announcementController from '../controllers/announcementController.js';
+import express from "express";
+import {
+  create,
+  getAll,
+  getById,
+  update,
+  remove,
+} from "../controllers/announcementController.js";
 
 const router = express.Router();
 
 // GET all announcements
-router.get('/', announcementController.getAll);
+router.get("/", getAll);
 
 // GET single announcement
-router.get('/:id', announcementController.getOne);
+router.get("/:id", getById);
 
 // POST create new announcement
-router.post('/', announcementController.create);
+router.post("/", create);
 
 // PUT update announcement (full update)
-router.put('/:id', announcementController.update);
+router.put("/:id", update);
 
 // DELETE announcement
-router.delete('/:id', announcementController.delete);
+router.delete("/:id", remove);
 
 export default router;
