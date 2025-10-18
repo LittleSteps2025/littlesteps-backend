@@ -2,8 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import pool from './config/db.js';
-import userRoutes from './routes/userRoutes.js'; // User routes
-import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes
 import errorHandler from './middlewares/errorHandler.js';
 
 // Core Routes
@@ -13,9 +11,8 @@ import authRoutes from './routes/authRoutes.js';
 // Teacher Routes
 import teacherRoutes from './routes/teacherRoutes.js';
 import reportRoutes from './routes/teacher/reportRoutes.js';
-import guardianRoutes from './routes/teacher/guardianRoutes.js';
 import teacherChildRoutes from './routes/teacher/childRoutes.js';
-import eventRoutes from './routes/teacher/eventRoutes.js';
+import eventRoutesTeacher from './routes/teacher/eventRoutes.js';
 import appointmentsRoutes from './routes/teacher/appointmentsRoutes.js';
 
 // Parent Routes
@@ -41,12 +38,8 @@ import appointmentRoutes from './routes/appointmentRoute.js';
 import supervisorPaymentRoutes from './routes/supervisor/supervisorPaymentRoutes.js';
 
 // Payment Routes
-import paymentRoutes from './routes/payment/paymentRoute.js';
-import adminPaymentRoutes from './routes/payment/adminPaymentRoute.js';
 
 // Admin Routes
-import adminDashboardRoutes from './routes/admin/dashboardRoutes.js';
-import adminReportsRoutes from './routes/admin/reportsRoutes.js';
 
 // Payment & Admin Routes
 import paymentRoutes from './routes/payment/paymentRoute.js';
@@ -82,7 +75,7 @@ app.use('/api/teacher', teacherRoutes);
 app.use('/api/teacher/reports', reportRoutes);
 app.use('/api/teacher/guardians', guardianRoutes);
 app.use('/api/teacher/children', teacherChildRoutes);
-app.use('/api/teacher/events', eventRoutes);
+app.use('/api/teacher/events', eventRoutesTeacher);
 app.use('/api/teacher/appointments', appointmentsRoutes);
 
 // Parent Routes
