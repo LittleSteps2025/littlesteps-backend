@@ -9,6 +9,7 @@ router.get("/packages", childController.getPackages);
 router.get("/package/:id", childController.getPackageById); // New route for fetching package by child ID
 router.get("/groups", childController.getGroups); // Move this BEFORE /:id
 router.get("/parent", childController.get_all_parents); // Move this BEFORE /:id
+router.delete("/parent/:id", childController.delete_parent); // Delete parent route
 router.post("/check-parent-nic", childController.checkVerifiedParent); // Specific routes first
 router.post("/check-nic", childController.check_nic);
 router.get("/", childController.getAll);
