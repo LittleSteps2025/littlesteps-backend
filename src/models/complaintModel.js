@@ -106,17 +106,18 @@ class ComplaintModel {
       JOIN child ch ON c.child_id = ch.child_id
       JOIN parent p ON ch.parent_id = p.parent_id
       JOIN "user" u ON p.user_id = u.user_id
-      WHERE c.recipient = $1
+      WHERE LOWER(TRIM(c.recipient)) = LOWER(TRIM($1))
       ORDER BY c.date DESC
     `;
     
     try {
-      console.log(`Fetching complaints for recipient: ${recipient}`);
+      console.log(`🔍 [ComplaintModel] Fetching complaints for recipient: ${recipient}`);
       const { rows } = await pool.query(query, [recipient]);
-      console.log(`Found ${rows.length} complaints for recipient: ${recipient}`);
+      console.log(`🔍 [ComplaintModel] Found ${rows.length} complaints for recipient: ${recipient}`);
+      console.log(`🔍 [ComplaintModel] Sample complaints:`, rows.slice(0, 3));
       return rows;
     } catch (error) {
-      console.error('Error fetching complaints by recipient:', error);
+      console.error('❌ [ComplaintModel] Error fetching complaints by recipient:', error);
       throw error;
     }
   }
