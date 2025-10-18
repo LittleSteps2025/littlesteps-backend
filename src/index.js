@@ -46,7 +46,7 @@ import paymentRoutes from './routes/payment/paymentRoute.js';
 import adminPaymentRoutes from './routes/payment/adminPaymentRoute.js';
 import adminDashboardRoutes from './routes/admin/dashboardRoutes.js';
 import adminReportsRoutes from './routes/admin/reportsRoutes.js';
-import adminAttendanceRoutes from './routes/admin/attendanceRoutes.js';
+// import adminAttendanceRoutes from './routes/admin/attendanceRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 
 dotenv.config();
@@ -135,7 +135,7 @@ app.use('/api/dashboard', dashboardRoutes); // ✅ Dashboard routes - NEW
 // Admin Routes
 app.use('/api/admin/dashboard', adminDashboardRoutes);
 app.use('/api/admin/reports', adminReportsRoutes);
-app.use('/api/admin/attendance', adminAttendanceRoutes);
+// app.use('/api/admin/attendance', adminAttendanceRoutes);
 app.use('/api/admin/payments', adminPaymentRoutes);
 
 // Payment & Subscription Routes
