@@ -41,8 +41,8 @@ const ChildModel = {
   },
 
   // ✅ Get full child record by ID
-async getChildById(childId) {
-  const query = `
+  async getChildById(childId) {
+    const query = `
     SELECT 
       c.*,
         TO_CHAR(c.dob, 'YYYY-MM-DD') AS dob,
@@ -58,27 +58,11 @@ async getChildById(childId) {
     LEFT JOIN "user" u ON p.user_id = u.user_id
     WHERE c.child_id = $1
   `;
-  const result = await pool.query(query, [childId]);
-  return result.rows[0];
-},
+    const result = await pool.query(query, [childId]);
+    return result.rows[0];
+  },
 
 
-
-
-
-
-
-  // ✅ Update emergency notes
-  // async updateEmergencyNotes(childId, emergencyNotes) {
-  //   const query = `
-  //     UPDATE child
-  //     SET emergency_notes = $1
-  //     WHERE child_id = $2
-  //     RETURNING *
-  //   `;
-  //   const result = await pool.query(query, [emergencyNotes, childId]);
-  //   return result.rows[0];
-  // },
 
   // ✅ Get all children with their parent info (list view)
   async getChildrenWithParents() {
@@ -100,7 +84,38 @@ async getChildById(childId) {
     `;
     const result = await pool.query(query);
     return result.rows;
-  }
+  },
+
+
+
+
+  async getSensitiveData(childId) {
+  // ✅ Fetch sensitive info from child table
+  const childResult = await pool.query(
+    'SELECT blood_type, allergies FROM child WHERE child_id = $1',
+    [childId]
+  );
+
+  // ✅ Fetch medical records for the child
+  const medicalResult = await pool.query(
+    'SELECT type, title, description FROM medical_records WHERE child_id = $1',
+    [childId]
+  );
+
+  return {
+    blood_type: childResult.rows[0]?.blood_type || null,
+    allergies: childResult.rows[0]?.allergies || null,
+    medical_records: medicalResult.rows || [],
+  };
+},
+
 };
+
+
+
+
+
+
+
 
 export default ChildModel;
