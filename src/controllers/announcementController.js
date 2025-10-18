@@ -1,4 +1,3 @@
-
 import announcementModel from '../models/announcementModel.js';
 
 const announcementController = {
@@ -126,4 +125,3 @@ const announcementController = {
 };
 
 export default announcementController;
-
