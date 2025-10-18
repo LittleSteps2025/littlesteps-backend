@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import pool from './config/db.js';
 import userRoutes from './routes/userRoutes.js'; // User routes
 import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes
-import supervisorRoutes from './routes/supervisorRoutes.js'; // ✅ Supervisor and Admin routes
 import errorHandler from './middlewares/errorHandler.js';
 
 // Core Routes
