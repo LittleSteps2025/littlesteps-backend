@@ -5,6 +5,7 @@ import { getParentByNic } from "../../models/supervisorModel.js";
 import { getAllParents } from "../../models/parent/parentModel.js";
 import { sendParentVerificationEmail } from "../../services/emailService.js";
 
+
 // Helper function to generate 4-digit verification code
 const generateVerificationCode = () => {
   return Math.floor(1000 + Math.random() * 9000).toString(); // Generates 4-digit code
@@ -359,8 +360,10 @@ class ChildController {
   }
   async getPackageById(req, res) {
     try {
-      const { id } = req.params;
-      console.log("Getting package for child ID:", id);
+
+      const { id: child_id } = req.params;
+      console.log("Getting package for child ID:", child_id);
+
 
       // Validate id is a number
       if (!id || isNaN(id)) {

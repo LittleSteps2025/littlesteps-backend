@@ -10,6 +10,7 @@ const ProfileModel = {
         u.user_id,
         u.name,
         u.email,
+        u.image,
         u.phone,
         u.role,
         u.address,
@@ -54,7 +55,7 @@ const ProfileModel = {
     }
 
     if (profileImage) {
-      fields.push(`profile_image = $${idx}`);
+      fields.push(`image = $${idx}`);
       values.push(profileImage);
       idx++;
     }
