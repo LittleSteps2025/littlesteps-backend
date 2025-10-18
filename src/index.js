@@ -19,6 +19,9 @@ import appointmentsRoutes from './routes/teacher/appointmentsRoutes.js';
 import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
 import parentRoutes from './routes/parent/parentRoutes.js';
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
+import childrenRoutes from './routes/parent/childrenRoutes.js';
+import viewReportRoutes from './routes/parent/viewReportRoutes.js';
+import healthRecordRoutes from './routes/parent/healthRecordRoutes.js';
 import childRoutes from './routes/child/childRoutes.js'; // Child routes
 import eventRoutes from './routes/eventRoutes.js';
 import announcementRoutes from './routes/announcementRoutes.js';
