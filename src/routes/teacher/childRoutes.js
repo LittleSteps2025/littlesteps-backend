@@ -9,6 +9,7 @@ import {
   // updateEmergencyNotes,
   getChildrenWithParents,
   saveEmergencyNote,
+  getChildSensitiveData
 } from '../../controllers/teacher/childController.js';
 import authenticateUser from '../../middlewares/firebaseAuthMiddleware.js';
 
@@ -36,6 +37,14 @@ router.get('/with-parents', getChildrenWithParents);
 
 router.post('/:childId/notes', authenticateUser, saveEmergencyNote);
 // router.get("/package/:child_id", getPackageById);
+
+
+//to get sensitive data
+router.get('/:id/sensitive', getChildSensitiveData);
+
+
+
+
 
 
 
