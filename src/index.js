@@ -38,6 +38,11 @@ import supervisorPaymentRoutes from './routes/supervisor/supervisorPaymentRoutes
 
 // Payment Routes
 import paymentRoutes from './routes/payment/paymentRoute.js';
+import adminPaymentRoutes from './routes/payment/adminPaymentRoute.js';
+
+// Admin Routes
+import adminDashboardRoutes from './routes/admin/dashboardRoutes.js';
+import adminReportsRoutes from './routes/admin/reportsRoutes.js';
 
 
 dotenv.config();
@@ -48,6 +53,12 @@ const PORT = process.env.PORT || 5001;
 // Middleware
 app.use(express.json());
 app.use(cors());
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
 
 
 
@@ -77,6 +88,13 @@ app.use('/api/supervisor/payments', supervisorPaymentRoutes);
 
 // Payment Routes
 app.use('/api/payment', paymentRoutes);
+app.use('/api/admin/payments', adminPaymentRoutes);
+
+// Admin Dashboard Routes
+app.use('/api/admin/dashboard', adminDashboardRoutes);
+
+// Admin Reports Routes
+app.use('/api/admin/reports', adminReportsRoutes);
 
 //Routes
 
