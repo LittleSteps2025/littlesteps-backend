@@ -1,5 +1,5 @@
 import pool from "../../config/db.js";
-import bcrypt from 'bcrypt';
+import bcrypt from "bcrypt";
 
 class ChildModel {
   async findAll() {
@@ -72,10 +72,9 @@ class ChildModel {
       ).rows[0]?.group_id;
 
       const package_id = (
-        await client.query(
-          `SELECT package_id FROM "package" WHERE name = $1`,
-          [package_name]
-        )
+        await client.query(`SELECT package_id FROM "package" WHERE name = $1`, [
+          package_name,
+        ])
       ).rows[0]?.package_id;
 
       // 1. Insert parent into 'user' table
@@ -152,26 +151,23 @@ class ChildModel {
       created_at = new Date(),
     } = child;
 
-
     const packageQuery = `SELECT package_id FROM "package" WHERE name = $1`;
-    const { rows: packageRows } = await pool.query(packageQuery, [package_name]);
-    const package_id = packageRows.length > 0 ? packageRows[0].package_id : null;
-    if (!group_id || !package_id) {
-      throw new Error('Invalid group or package name');
+    const { rows: packageRows } = await pool.query(packageQuery, [
+      package_name,
+    ]);
+    const package_id =
+      packageRows.length > 0 ? packageRows[0].package_id : null;
+    if (!package_id) {
+      throw new Error("Invalid package name");
     }
     const { rows } = await pool.query(
       `UPDATE child SET
           name = $1,
-          package_id = $3,
-          created_at = $4
-       WHERE child_id = $5
+          package_id = $2,
+          created_at = $3
+       WHERE child_id = $4
        RETURNING *`,
-      [
-        name,
-        package_id,
-        created_at,
-        child_id,
-      ]
+      [name, package_id, created_at, child_id]
     );
 
     const updateParentQuery = `
@@ -179,75 +175,90 @@ class ChildModel {
       SET phone = $1, address = $2
       WHERE user_id = (SELECT user_id FROM parent WHERE parent_id = (SELECT parent_id FROM child WHERE child_id = $3))
     `;
-    await pool.query(updateParentQuery, [parentContact, parentAddress, child_id]);
+    await pool.query(updateParentQuery, [
+      parentContact,
+      parentAddress,
+      child_id,
+    ]);
 
     return rows[0];
   }
 
   async remove(child_id) {
     const client = await pool.connect();
-    
+
     try {
       await client.query("BEGIN");
-      
+
       // First, get the child's group_id and parent_id before deletion
       const childInfoQuery = `
         SELECT group_id, parent_id FROM child WHERE child_id = $1
       `;
-      const { rows: childInfo } = await client.query(childInfoQuery, [child_id]);
-      
+      const { rows: childInfo } = await client.query(childInfoQuery, [
+        child_id,
+      ]);
+
       if (childInfo.length === 0) {
         await client.query("ROLLBACK");
         return false; // Child not found
       }
-      
+
       const { group_id, parent_id } = childInfo[0];
-      
+
       // Check if this parent has other children
       const siblingCountQuery = `
         SELECT COUNT(*) as sibling_count FROM child 
         WHERE parent_id = $1 AND child_id != $2
       `;
-      const { rows: siblingCount } = await client.query(siblingCountQuery, [parent_id, child_id]);
+      const { rows: siblingCount } = await client.query(siblingCountQuery, [
+        parent_id,
+        child_id,
+      ]);
       const hasSiblings = parseInt(siblingCount[0].sibling_count) > 0;
-      
+
       // Delete the child first (due to foreign key constraints)
       const { rowCount } = await client.query(
         "DELETE FROM child WHERE child_id = $1",
         [child_id]
       );
-      
+
       if (rowCount === 0) {
         await client.query("ROLLBACK");
         return false;
       }
-      
+
       // Update group child count
       const updateGroupQuery = `
         UPDATE "group" SET child_count = child_count - 1 
         WHERE group_id = $1 AND child_count > 0
       `;
       await client.query(updateGroupQuery, [group_id]);
-      
+
       // Only delete parent and user if this was the only child
       if (!hasSiblings) {
         // Get user_id before deleting parent
         const getUserQuery = `
           SELECT user_id FROM parent WHERE parent_id = $1
         `;
-        const { rows: userInfo } = await client.query(getUserQuery, [parent_id]);
-        
+        const { rows: userInfo } = await client.query(getUserQuery, [
+          parent_id,
+        ]);
+
         if (userInfo.length > 0) {
           const user_id = userInfo[0].user_id;
-          
+
           // Delete parent record
-          await client.query("DELETE FROM parent WHERE parent_id = $1", [parent_id]);
-          
+          await client.query("DELETE FROM parent WHERE parent_id = $1", [
+            parent_id,
+          ]);
+
           // Delete user record
-          await client.query('DELETE FROM "user" WHERE user_id = $1', [user_id]);
+          await client.query('DELETE FROM "user" WHERE user_id = $1', [
+            user_id,
+          ]);
         }
       }
-      
+
       await client.query("COMMIT");
       return true;
     } catch (error) {
@@ -262,11 +273,12 @@ class ChildModel {
   async getGroups() {
     try {
       console.log("Fetching groups from database...");
-      
+
       // Simplified query without child_count for now
-      const query = 'SELECT name FROM "group" WHERE child_count < 5 ORDER BY group_id';
+      const query =
+        'SELECT name FROM "group" WHERE child_count < 5 ORDER BY group_id';
       console.log("Executing query:", query);
-      
+
       const { rows } = await pool.query(query);
       console.log("Groups fetched successfully:", rows);
       return rows;
@@ -284,7 +296,7 @@ class ChildModel {
       // Simplified query without child_count for now
       const query = 'SELECT name FROM "package" ORDER BY package_id';
       console.log("Executing query:", query);
-      
+
       const { rows } = await pool.query(query);
       console.log("Packages fetched successfully:", rows);
       return rows;
@@ -321,37 +333,44 @@ class ChildModel {
   async storeParentToken(email, name, nic, token) {
     try {
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
-      
+
       // Hash the verification token for security
       const saltRounds = 12;
       const hashedToken = await bcrypt.hash(token, saltRounds);
-      
+
       const tokenData = JSON.stringify({
         verification_token: hashedToken,
         expires_at: expiresAt.toISOString(),
         email: email,
         name: name,
-        nic: nic
+        nic: nic,
       });
-      
+
       // Create user entry with 'inactive' status
       const tempUserQuery = `
         INSERT INTO "user" (nic, name, email, role, status, created_at)
         VALUES ($1, $2, $3, 'parent', 'inactive', NOW())
         RETURNING user_id
       `;
-      
-      const { rows: userRows } = await pool.query(tempUserQuery, [nic, name, email]);
+
+      const { rows: userRows } = await pool.query(tempUserQuery, [
+        nic,
+        name,
+        email,
+      ]);
       const userId = userRows[0].user_id;
-      
+
       // Store in parent table with hashed token
       const parentQuery = `
         INSERT INTO parent (user_id, password, token, verified)
         VALUES ($1, NULL, $2, false)
         RETURNING *
       `;
-      
-      const { rows } = await pool.query(parentQuery, [userId, tokenData.verification_token]);
+
+      const { rows } = await pool.query(parentQuery, [
+        userId,
+        tokenData.verification_token,
+      ]);
       return rows[0];
     } catch (error) {
       console.error("Error storing parent token:", error);
@@ -368,21 +387,24 @@ class ChildModel {
         JOIN "user" u ON p.user_id = u.user_id
         WHERE u.email = $1 AND p.verified = false AND p.token IS NOT NULL
       `;
-      
+
       const { rows } = await pool.query(query, [email]);
-      
+
       if (rows.length > 0) {
         const parentRecord = rows[0];
-        
+
         try {
           const tokenData = JSON.parse(parentRecord.token);
           const expiresAt = new Date(tokenData.expires_at);
-          
+
           // Check if token hasn't expired
           if (expiresAt > new Date()) {
             // Compare the plain text token with the hashed token using bcrypt
-            const isTokenValid = await bcrypt.compare(token, tokenData.verification_token);
-            
+            const isTokenValid = await bcrypt.compare(
+              token,
+              tokenData.verification_token
+            );
+
             if (isTokenValid) {
               // Mark parent as verified and clear token
               const updateQuery = `
@@ -391,7 +413,7 @@ class ChildModel {
                 WHERE parent_id = $1
               `;
               await pool.query(updateQuery, [parentRecord.parent_id]);
-              
+
               // Update user status to active
               const updateUserQuery = `
                 UPDATE "user" 
@@ -399,7 +421,7 @@ class ChildModel {
                 WHERE user_id = $1
               `;
               await pool.query(updateUserQuery, [parentRecord.user_id]);
-              
+
               return true;
             }
           }
@@ -407,7 +429,7 @@ class ChildModel {
           console.error("Error parsing token data:", parseError);
         }
       }
-      
+
       return false;
     } catch (error) {
       console.error("Error verifying parent token:", error);
@@ -418,10 +440,10 @@ class ChildModel {
   // Create child with verified parent
   async createWithVerifiedParent(childData, parentId) {
     const client = await pool.connect();
-    
+
     try {
       await client.query("BEGIN");
-      
+
       const {
         name,
         age,
@@ -434,20 +456,24 @@ class ChildModel {
         blood_type = null,
         mr = null,
         allergies = null,
-        created_at = new Date()
+        created_at = new Date(),
       } = childData;
 
       // Get group_id and package_id
       const group_id = (
-        await client.query(`SELECT group_id FROM "group" WHERE name = $1`, [group_name])
+        await client.query(`SELECT group_id FROM "group" WHERE name = $1`, [
+          group_name,
+        ])
       ).rows[0]?.group_id;
 
       const package_id = (
-        await client.query(`SELECT package_id FROM "package" WHERE name = $1`, [package_name])
+        await client.query(`SELECT package_id FROM "package" WHERE name = $1`, [
+          package_name,
+        ])
       ).rows[0]?.package_id;
 
       if (!group_id || !package_id) {
-        throw new Error('Invalid group or package name');
+        throw new Error("Invalid group or package name");
       }
 
       // Insert child
@@ -458,7 +484,7 @@ class ChildModel {
           ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         RETURNING *
       `;
-      
+
       const childResult = await client.query(childInsertQuery, [
         parentId,
         name,
@@ -484,7 +510,6 @@ class ChildModel {
       client.release();
     }
   }
-
 }
 
 export default new ChildModel();
