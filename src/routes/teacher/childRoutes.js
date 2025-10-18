@@ -11,6 +11,7 @@ import {
   saveEmergencyNote,
 
   getParentFCMToken,
+  getChildSensitiveData
 } from "../../controllers/teacher/childController.js";
 import authenticateUser from "../../middlewares/firebaseAuthMiddleware.js";
 // import childController from "../../controllers/child/childController.js";
@@ -42,8 +43,15 @@ router.post('/:childId/notes', authenticateUser, saveEmergencyNote);
 // router.get("/package/:child_id", getPackageById);
 
 
+//to get sensitive data
+router.get('/:id/sensitive', getChildSensitiveData);
+
+
+
+
+
+
 router.post("/:childId/notes", authenticateUser, saveEmergencyNote);
-// router.get("/package/:child_id", childController.getPackageById);
 
 // ✅ Get parent's FCM token for a child
 router.get("/:childId/parent-token", getParentFCMToken);
