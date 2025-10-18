@@ -6,6 +6,17 @@ import userRoutes from './routes/userRoutes.js'; // User routes
 import reportRoutes from './routes/teacher/reportRoutes.js'; // ✅ Report routes
 import supervisorRoutes from './routes/supervisorRoutes.js'; // ✅ Supervisor and Admin routes
 import errorHandler from './middlewares/errorHandler.js';
+
+// Core Routes
+import authRoutes from './routes/authRoutes.js';
+
+// Teacher Routes
+import teacherChildRoutes from './routes/teacher/childRoutes.js';
+import eventRoutesChathumini from './routes/teacher/eventRoutes.js';
+import appointmentsRoutes from './routes/teacher/appointmentsRoutes.js';
+
+// Parent Routes
+
 import teacherRoutes from './routes/teacherRoutes.js'; // ✅ Teacher routes
 import parentRoutes from './routes/parent/parentRoutes.js';
 import dailyRecordRoutes from './routes/parent/dailyRecordRoutes.js';
@@ -16,8 +27,17 @@ import meetingRoutes from './routes/meetingRoutes.js'; // ✅ Meeting routes
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 import complaintRoutes from './routes/complaintRoutes.js'; // ✅ Complaint routes
 import supervisorReportRoutes from './routes/supervisorReportRoutes.js'; // ✅ Supervisor Report routes
-import dashboardRoutes from './routes/dashboardRoutes.js'; // ✅ Dashboard routes
+import dashboardRoutes from './routes/dashboardRoutes.js'; // ✅ Dashboard route
+// Supervisor Routes
+import supervisorRoutes from './routes/supervisorRoutes.js';
+import childSupervisorRoutes from './routes/child/childRoutes.js';
+import supervisorEventRoutes from './routes/eventRoutes.js';
+import announcementsRoutes from './routes/announcementsRoute.js';
+import appointmentRoutes from './routes/appointmentRoute.js';
+import supervisorPaymentRoutes from './routes/supervisor/supervisorPaymentRoutes.js';
 
+// Payment Routes
+import paymentRoutes from './routes/payment/paymentRoute.js';
 
 
 dotenv.config();
@@ -29,6 +49,34 @@ const PORT = process.env.PORT || 5001;
 app.use(express.json());
 app.use(cors());
 
+
+
+// Core Routes
+app.use('/api/auth', authRoutes);
+
+// Teacher Routes
+app.use('/api/teachers/child', teacherChildRoutes);
+app.use('/api/events', eventRoutesChathumini); //chathumini
+app.use('/api/appointments', appointmentsRoutes);
+
+// Parent Routes
+app.use('/api/daily-records', dailyRecordRoutes);
+app.use('/api/parent/announcements', announcementRoutes);
+app.use('/api/parent/children', childrenRoutes);
+app.use('/api/parent/reports', viewReportRoutes);
+app.use('/api/parent/health', healthRecordRoutes);
+app.use('/api/parent/meeting', meetingRoutes);
+app.use('/api/parent/complaint', complaintRoutes);
+
+// Supervisor Routes
+app.use('/api/supervisors/child', childSupervisorRoutes);
+app.use('/api/supervisor/events', supervisorEventRoutes);
+app.use('/api/announcements', announcementsRoutes);//chathumini
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/supervisor/payments', supervisorPaymentRoutes);
+
+// Payment Routes
+app.use('/api/payment', paymentRoutes);
 
 //Routes
 
@@ -55,6 +103,7 @@ app.use('/api/meetings', meetingRoutes); // ✅ Meeting routes
 app.use('/api/complaints', complaintRoutes); // ✅ Complaint routes
 app.use('/api/supervisor-reports', supervisorReportRoutes); // ✅ Supervisor Report routes
 app.use('/api/dashboard', dashboardRoutes); // ✅ Dashboard routes - NEW
+
 // Error handling middleware
 app.use(errorHandler);
 
