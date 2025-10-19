@@ -2,13 +2,39 @@ import pool from '../config/db.js';
 
 const eventModel = {
   async getAll() {
-    const query = 'SELECT * FROM event ORDER BY date, time';
+    const query = `
+      SELECT 
+        event_id,
+        user_id,
+        image,
+        TO_CHAR(date, 'YYYY-MM-DD') as date,
+        time,
+        description,
+        topic,
+        venue,
+        created_time
+      FROM event 
+      ORDER BY date, time
+    `;
     const { rows } = await pool.query(query);
     return rows;
   },
 
   async getById(eventId) {
-    const query = 'SELECT * FROM event WHERE event_id = $1';
+    const query = `
+      SELECT 
+        event_id,
+        user_id,
+        image,
+        TO_CHAR(date, 'YYYY-MM-DD') as date,
+        time,
+        description,
+        topic,
+        venue,
+        created_time
+      FROM event 
+      WHERE event_id = $1
+    `;
     const { rows } = await pool.query(query, [eventId]);
     return rows[0];
   },
@@ -18,7 +44,16 @@ const eventModel = {
       INSERT INTO event 
         (user_id, image, date, time, description, topic, venue)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *
+      RETURNING 
+        event_id,
+        user_id,
+        image,
+        TO_CHAR(date, 'YYYY-MM-DD') as date,
+        time,
+        description,
+        topic,
+        venue,
+        created_time
     `;
     const values = [user_id, image, date, time, description, topic, venue];
     const { rows } = await pool.query(query, values);
@@ -36,7 +71,16 @@ const eventModel = {
         topic = COALESCE($5, topic),
         venue = COALESCE($6, venue)
       WHERE event_id = $7
-      RETURNING *
+      RETURNING 
+        event_id,
+        user_id,
+        image,
+        TO_CHAR(date, 'YYYY-MM-DD') as date,
+        time,
+        description,
+        topic,
+        venue,
+        created_time
     `;
     const values = [image, date, time, description, topic, venue, eventId];
     const { rows } = await pool.query(query, values);

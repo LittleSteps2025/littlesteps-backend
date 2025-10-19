@@ -1,3 +1,4 @@
+
 import * as AnnouncementModel from '../models/announcementModel.js';
 
 // Create a new announcement or event
@@ -312,6 +313,10 @@ export const update = async (req, res) => {
           type: 'announcement'
         }
       });
+      
+//       res.status(201).json(newAnnouncement);
+//     } catch (error) {
+//       next(error);
     }
   } catch (error) {
     console.error('Full error object:', error);
@@ -322,6 +327,7 @@ export const update = async (req, res) => {
       message: 'Failed to update announcement/event',
       error: error.message
     });
+
   }
 };
 

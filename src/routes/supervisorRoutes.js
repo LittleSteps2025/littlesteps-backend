@@ -1,5 +1,6 @@
 import express from 'express';
-import { supervisorAuth, supervisorLogin, adminAuth } from '../controllers/supervisorController.js';
+import { supervisorAuth, supervisorLogin, adminAuth, changePassword } from '../controllers/supervisorController.js';
+import { authenticateToken, requireSupervisorOrAdmin } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -10,5 +11,8 @@ router.post('/supervisorLogin', supervisorLogin);
 // Admin routes (admins stored only in user table)
 router.post('/adminSignup', adminAuth);
 // Admin login uses the same supervisorLogin function since logic is the same
+
+// Protected routes
+router.post('/change-password', authenticateToken, requireSupervisorOrAdmin, changePassword);
 
 export default router;
