@@ -12,6 +12,7 @@ router.get("/parent", childController.get_all_parents); // Move this BEFORE /:id
 router.delete("/parent/:id", childController.delete_parent); // Delete parent route
 router.post("/check-parent-nic", childController.checkVerifiedParent); // Specific routes first
 router.post("/check-nic", childController.check_nic);
+router.patch("/:id/status", childController.updateStatus); // Update child status (disable/enable)
 router.get("/", childController.getAll);
 router.get("/:id", childController.getById); // Parameterized routes last
 router.post("/", childController.create);

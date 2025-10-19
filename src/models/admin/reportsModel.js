@@ -141,6 +141,7 @@ export const getQuickStats = async () => {
 // Get children report data
 export const getChildrenReportData = async (startDate, endDate, detailLevel = 'all') => {
   let query = '';
+  let params = [];
   
   switch (detailLevel) {
     case 'active':
@@ -156,9 +157,10 @@ export const getChildrenReportData = async (startDate, endDate, detailLevel = 'a
         FROM child c
         LEFT JOIN "group" g ON c.group_id = g.group_id
         LEFT JOIN "package" p ON c.package_id = p.package_id
-        WHERE COALESCE(c.created_at, CURRENT_DATE) <= $2
+        WHERE COALESCE(c.created_at, CURRENT_DATE) <= $1::date
         ORDER BY c.name
       `;
+      params = [endDate];
       break;
       
     case 'withParents':
@@ -178,9 +180,10 @@ export const getChildrenReportData = async (startDate, endDate, detailLevel = 'a
         LEFT JOIN "package" p ON c.package_id = p.package_id
         LEFT JOIN parent pr ON c.child_id = pr.child_id
         LEFT JOIN "user" u ON pr.parent_email = u.email
-        WHERE COALESCE(c.created_at, CURRENT_DATE) BETWEEN $1 AND $2
+        WHERE COALESCE(c.created_at, CURRENT_DATE) BETWEEN $1::date AND $2::date
         ORDER BY c.name
       `;
+      params = [startDate, endDate];
       break;
       
     case 'all':
@@ -199,18 +202,20 @@ export const getChildrenReportData = async (startDate, endDate, detailLevel = 'a
         FROM child c
         LEFT JOIN "group" g ON c.group_id = g.group_id
         LEFT JOIN "package" p ON c.package_id = p.package_id
-        WHERE COALESCE(c.created_at, CURRENT_DATE) <= $2
+        WHERE COALESCE(c.created_at, CURRENT_DATE) <= $1::date
         ORDER BY c.name
       `;
+      params = [endDate];
   }
   
-  const result = await pool.query(query, [startDate, endDate]);
+  const result = await pool.query(query, params);
   return result.rows;
 };
 
 // Get attendance report data
 export const getAttendanceReportData = async (startDate, endDate, groupBy = 'daily') => {
   let query = '';
+  const params = [startDate, endDate];
   
   switch (groupBy) {
     case 'child':
@@ -228,7 +233,7 @@ export const getAttendanceReportData = async (startDate, endDate, groupBy = 'dai
         FROM child c
         LEFT JOIN "group" g ON c.group_id = g.group_id
         LEFT JOIN report r ON c.child_id = r.child_id 
-          AND DATE(r.create_date) BETWEEN $1 AND $2
+          AND DATE(r.create_date) BETWEEN $1::date AND $2::date
         GROUP BY c.child_id, c.name, c.age, g.name
         ORDER BY c.name
       `;
@@ -242,7 +247,7 @@ export const getAttendanceReportData = async (startDate, endDate, groupBy = 'dai
           COUNT(r.report_id) as total_checkins,
           ROUND(AVG(COUNT(r.report_id)) OVER (), 2) as avg_checkins
         FROM report r
-        WHERE DATE(r.create_date) BETWEEN $1 AND $2
+        WHERE DATE(r.create_date) BETWEEN $1::date AND $2::date
         GROUP BY DATE_TRUNC('week', r.create_date)
         ORDER BY week_start DESC
       `;
@@ -256,7 +261,7 @@ export const getAttendanceReportData = async (startDate, endDate, groupBy = 'dai
           COUNT(r.report_id) as total_checkins,
           COUNT(DISTINCT DATE(r.create_date)) as active_days
         FROM report r
-        WHERE DATE(r.create_date) BETWEEN $1 AND $2
+        WHERE DATE(r.create_date) BETWEEN $1::date AND $2::date
         GROUP BY DATE_TRUNC('month', r.create_date)
         ORDER BY month DESC
       `;
@@ -273,19 +278,20 @@ export const getAttendanceReportData = async (startDate, endDate, groupBy = 'dai
           (SELECT COUNT(*) FROM child) as total_enrolled,
           ROUND((COUNT(DISTINCT r.child_id)::DECIMAL / NULLIF((SELECT COUNT(*) FROM child), 0)) * 100, 2) as attendance_percentage
         FROM report r
-        WHERE DATE(r.create_date) BETWEEN $1 AND $2
+        WHERE DATE(r.create_date) BETWEEN $1::date AND $2::date
         GROUP BY DATE(r.create_date)
         ORDER BY date DESC
       `;
   }
   
-  const result = await pool.query(query, [startDate, endDate]);
+  const result = await pool.query(query, params);
   return result.rows;
 };
 
 // Get subscriptions report data
 export const getSubscriptionsReportData = async (startDate, endDate, detailLevel = 'all') => {
   let query = '';
+  let params = [];
   
   switch (detailLevel) {
     case 'active':
@@ -346,13 +352,14 @@ export const getSubscriptionsReportData = async (startDate, endDate, detailLevel
       `;
   }
   
-  const result = await pool.query(query, [startDate, endDate]);
+  const result = await pool.query(query, params);
   return result.rows;
 };
 
 // Get payments report data
 export const getPaymentsReportData = async (startDate, endDate, detailLevel = 'summary') => {
   let query = '';
+  const params = [startDate, endDate];
   
   switch (detailLevel) {
     case 'detailed':
@@ -380,7 +387,7 @@ export const getPaymentsReportData = async (startDate, endDate, detailLevel = 's
         LEFT JOIN "user" u ON p.parent_email = u.email
         LEFT JOIN parent pr ON p.parent_email = pr.parent_email
         LEFT JOIN child c ON pr.child_id = c.child_id
-        WHERE DATE(p.created_at) BETWEEN $1 AND $2
+        WHERE DATE(p.created_at) BETWEEN $1::date AND $2::date
         ORDER BY p.created_at DESC
       `;
       break;
@@ -401,7 +408,7 @@ export const getPaymentsReportData = async (startDate, endDate, detailLevel = 's
         LEFT JOIN parent pr ON p.parent_email = pr.parent_email
         LEFT JOIN child c ON pr.child_id = c.child_id
         WHERE p.status = 'pending'
-        AND DATE(p.created_at) BETWEEN $1 AND $2
+        AND DATE(p.created_at) BETWEEN $1::date AND $2::date
         ORDER BY days_overdue DESC
       `;
       break;
@@ -415,7 +422,7 @@ export const getPaymentsReportData = async (startDate, endDate, detailLevel = 's
           AVG(p.amount) as average_amount,
           COUNT(CASE WHEN p.status = 'completed' OR p.paid_at IS NOT NULL THEN 1 END) as successful_count
         FROM payments p
-        WHERE DATE(p.created_at) BETWEEN $1 AND $2
+        WHERE DATE(p.created_at) BETWEEN $1::date AND $2::date
         GROUP BY p.payment_method
         ORDER BY total_amount DESC
       `;
@@ -434,11 +441,11 @@ export const getPaymentsReportData = async (startDate, endDate, detailLevel = 's
           MAX(amount) as highest_payment,
           MIN(amount) as lowest_payment
         FROM payments
-        WHERE DATE(created_at) BETWEEN $1 AND $2
+        WHERE DATE(created_at) BETWEEN $1::date AND $2::date
       `;
   }
   
-  const result = await pool.query(query, [startDate, endDate]);
+  const result = await pool.query(query, params);
   return result.rows;
 };
 
@@ -462,7 +469,7 @@ export const getComplaintsReportData = async (startDate, endDate, detailLevel = 
         FROM complaints c
         LEFT JOIN "user" u ON c.parent_email = u.email
         WHERE c.status = 'pending'
-        AND DATE(c.created_at) BETWEEN $1 AND $2
+        AND DATE(c.created_at) BETWEEN $1::date AND $2::date
         ORDER BY c.created_at ASC
       `;
       break;
@@ -480,7 +487,7 @@ export const getComplaintsReportData = async (startDate, endDate, detailLevel = 
         FROM complaints c
         LEFT JOIN "user" u ON c.parent_email = u.email
         WHERE c.status = 'resolved'
-        AND DATE(c.created_at) BETWEEN $1 AND $2
+        AND DATE(c.created_at) BETWEEN $1::date AND $2::date
         ORDER BY c.created_at DESC
       `;
       break;
@@ -499,7 +506,7 @@ export const getComplaintsReportData = async (startDate, endDate, detailLevel = 
         FROM complaints c
         LEFT JOIN "user" u ON c.parent_email = u.email
         WHERE c.status = 'in_progress'
-        AND DATE(c.created_at) BETWEEN $1 AND $2
+        AND DATE(c.created_at) BETWEEN $1::date AND $2::date
         ORDER BY c.created_at ASC
       `;
       break;
@@ -522,7 +529,7 @@ export const getComplaintsReportData = async (startDate, endDate, detailLevel = 
           END as status_label
         FROM complaints c
         LEFT JOIN "user" u ON c.parent_email = u.email
-        WHERE DATE(c.created_at) BETWEEN $1 AND $2
+        WHERE DATE(c.created_at) BETWEEN $1::date AND $2::date
         ORDER BY c.created_at DESC
       `;
   }
@@ -538,7 +545,7 @@ export const getComplaintsReportData = async (startDate, endDate, detailLevel = 
       COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count,
       COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress_count
     FROM complaints
-    WHERE DATE(created_at) BETWEEN $1 AND $2
+    WHERE DATE(created_at) BETWEEN $1::date AND $2::date
     GROUP BY complaint_type
     ORDER BY count DESC
   `;
@@ -571,7 +578,7 @@ export const getAnnouncementsReportData = async (startDate, endDate, detailLevel
           a.published_time
         FROM announcement a
         LEFT JOIN "user" u ON a.user_id = u.user_id
-        WHERE DATE(a.created_at) BETWEEN $1 AND $2
+        WHERE DATE(a.created_at) BETWEEN $1::date AND $2::date
         AND a.title NOT LIKE '%Event%'
         AND a.title NOT LIKE '%Urgent%'
         ORDER BY a.created_at DESC
@@ -591,7 +598,7 @@ export const getAnnouncementsReportData = async (startDate, endDate, detailLevel
           a.published_time
         FROM announcement a
         LEFT JOIN "user" u ON a.user_id = u.user_id
-        WHERE DATE(a.created_at) BETWEEN $1 AND $2
+        WHERE DATE(a.created_at) BETWEEN $1::date AND $2::date
         AND (a.title LIKE '%Event%' OR a.content LIKE '%event%')
         ORDER BY a.published_date DESC
       `;
@@ -610,7 +617,7 @@ export const getAnnouncementsReportData = async (startDate, endDate, detailLevel
           a.published_time
         FROM announcement a
         LEFT JOIN "user" u ON a.user_id = u.user_id
-        WHERE DATE(a.created_at) BETWEEN $1 AND $2
+        WHERE DATE(a.created_at) BETWEEN $1::date AND $2::date
         AND (a.title LIKE '%Urgent%' OR a.title LIKE '%Important%')
         ORDER BY a.created_at DESC
       `;
@@ -632,7 +639,7 @@ export const getAnnouncementsReportData = async (startDate, endDate, detailLevel
           LENGTH(a.content) as content_length
         FROM announcement a
         LEFT JOIN "user" u ON a.user_id = u.user_id
-        WHERE DATE(a.created_at) BETWEEN $1 AND $2
+        WHERE DATE(a.created_at) BETWEEN $1::date AND $2::date
         ORDER BY a.created_at DESC
       `;
   }
@@ -665,9 +672,9 @@ export const getStaffReportData = async (startDate, endDate, detailLevel = 'all'
            WHERE t.user_id = u.user_id) as children_count
         FROM "user" u
         LEFT JOIN report r ON u.user_id = r.teacher_id 
-          AND DATE(r.create_date) BETWEEN $1 AND $2
+          AND DATE(r.create_date) BETWEEN $1::date AND $2::date
         LEFT JOIN announcement a ON u.user_id = a.user_id 
-          AND DATE(a.created_at) BETWEEN $1 AND $2
+          AND DATE(a.created_at) BETWEEN $1::date AND $2::date
         WHERE u.role = 'teacher'
         GROUP BY u.user_id, u.name, u.email, u.phone, u.role
         ORDER BY u.name
@@ -686,7 +693,7 @@ export const getStaffReportData = async (startDate, endDate, detailLevel = 'all'
           MAX(a.created_at) as last_announcement_date
         FROM "user" u
         LEFT JOIN announcement a ON u.user_id = a.user_id 
-          AND DATE(a.created_at) BETWEEN $1 AND $2
+          AND DATE(a.created_at) BETWEEN $1::date AND $2::date
         WHERE u.role = 'supervisor'
         GROUP BY u.user_id, u.name, u.email, u.phone, u.role
         ORDER BY u.name
@@ -705,9 +712,9 @@ export const getStaffReportData = async (startDate, endDate, detailLevel = 'all'
           COUNT(DISTINCT ar.admin_report_id) as reports_generated
         FROM "user" u
         LEFT JOIN announcement a ON u.user_id = a.user_id 
-          AND DATE(a.created_at) BETWEEN $1 AND $2
+          AND DATE(a.created_at) BETWEEN $1::date AND $2::date
         LEFT JOIN admin_reports ar ON u.user_id = ar.user_id 
-          AND DATE(ar.created_at) BETWEEN $1 AND $2
+          AND DATE(ar.created_at) BETWEEN $1::date AND $2::date
         WHERE u.role = 'admin'
         GROUP BY u.user_id, u.name, u.email, u.phone, u.role
         ORDER BY u.name
@@ -733,9 +740,9 @@ export const getStaffReportData = async (startDate, endDate, detailLevel = 'all'
           END as activity_level
         FROM "user" u
         LEFT JOIN report r ON u.user_id = r.teacher_id 
-          AND DATE(r.create_date) BETWEEN $1 AND $2
+          AND DATE(r.create_date) BETWEEN $1::date AND $2::date
         LEFT JOIN announcement a ON u.user_id = a.user_id 
-          AND DATE(a.created_at) BETWEEN $1 AND $2
+          AND DATE(a.created_at) BETWEEN $1::date AND $2::date
         WHERE u.role IN ('teacher', 'supervisor', 'admin')
         GROUP BY u.user_id, u.name, u.email, u.phone, u.role
         ORDER BY u.role, u.name
@@ -794,7 +801,7 @@ export const getParentsReportData = async (startDate, endDate, detailLevel = 'al
         LEFT JOIN parent pr ON u.email = pr.parent_email
         LEFT JOIN child c ON pr.child_id = c.child_id
         LEFT JOIN payments py ON u.email = py.parent_email
-          AND DATE(py.created_at) BETWEEN $1 AND $2
+          AND DATE(py.created_at) BETWEEN $1::date AND $2::date
         WHERE u.role = 'parent'
         GROUP BY u.user_id, u.name, u.email, u.phone
         ORDER BY u.name
@@ -820,7 +827,7 @@ export const getParentsReportData = async (startDate, endDate, detailLevel = 'al
         LEFT JOIN child c ON pr.child_id = c.child_id
         LEFT JOIN payments py ON u.email = py.parent_email
         LEFT JOIN complaints comp ON u.email = comp.parent_email
-          AND DATE(comp.created_at) BETWEEN $1 AND $2
+          AND DATE(comp.created_at) BETWEEN $1::date AND $2::date
         WHERE u.role = 'parent'
         GROUP BY u.user_id, u.name, u.email, u.phone
         ORDER BY u.name
@@ -871,7 +878,7 @@ export const getMISReportData = async (startDate, endDate) => {
       COUNT(DISTINCT r.child_id) as unique_children,
       COUNT(r.report_id) as total_checkins
     FROM report r
-    WHERE DATE(r.create_date) BETWEEN $1 AND $2
+    WHERE DATE(r.create_date) BETWEEN $1::date AND $2::date
     GROUP BY DATE(r.create_date)
     ORDER BY date DESC
     LIMIT 30
@@ -885,7 +892,7 @@ export const getMISReportData = async (startDate, endDate) => {
       SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pending_amount,
       AVG(amount) as average_transaction
     FROM payments
-    WHERE DATE(created_at) BETWEEN $1 AND $2
+    WHERE DATE(created_at) BETWEEN $1::date AND $2::date
   `, [startDate, endDate]);
   
   // Get complaints summary
@@ -895,7 +902,7 @@ export const getMISReportData = async (startDate, endDate) => {
       COUNT(CASE WHEN status = 'resolved' THEN 1 END) as resolved_count,
       COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_count
     FROM complaints
-    WHERE DATE(created_at) BETWEEN $1 AND $2
+    WHERE DATE(created_at) BETWEEN $1::date AND $2::date
   `, [startDate, endDate]);
   
   // Get staff summary
