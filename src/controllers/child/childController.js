@@ -511,6 +511,42 @@ class ChildController {
     }
   }
 
+  // Update child status (disable/enable)
+  async updateStatus(req, res) {
+    const { id } = req.params;
+    const { is_active } = req.body;
+
+    try {
+      // Validate input
+      if (typeof is_active !== 'boolean') {
+        return res.status(400).json({
+          success: false,
+          message: "is_active must be a boolean value"
+        });
+      }
+
+      // Update child status
+      const updatedChild = await childModel.updateStatus(id, is_active);
+
+      return res.status(200).json({
+        success: true,
+        message: `Child ${is_active ? 'enabled' : 'disabled'} successfully`,
+        data: updatedChild
+      });
+    } catch (error) {
+      console.error("Error updating child status:", error);
+
+      if (error.message === 'Child not found') {
+        return res.status(404).json({
+          success: false,
+          message: "Child not found"
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        message: "Error updating child status",
+        error: process.env.NODE_ENV === "development" ? error.message : undefined
   async delete_parent(req, res) {
     try {
       const { id } = req.params;

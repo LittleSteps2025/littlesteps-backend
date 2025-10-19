@@ -423,10 +423,10 @@ export const deleteMeeting = async (req, res) => {
 // Search meetings with filters (only supervisor meetings)
 export const searchMeetings = async (req, res) => {
   try {
-    const { searchTerm, response, dateFrom, dateTo } = req.query;
+    const { searchTerm, status, dateFrom, dateTo } = req.query;
     
     // Only search for supervisor meetings
-    const meetings = await meetingModel.searchSupervisorMeetings(searchTerm, response, dateFrom, dateTo);
+    const meetings = await meetingModel.searchSupervisorMeetings(searchTerm, status, dateFrom, dateTo);
     
     res.status(200).json({
       success: true,
