@@ -29,7 +29,7 @@ const ReportModel = {
   JOIN "group" ON child.group_id = "group".group_id  
   JOIN teacher ON "group".main_teacher_id = teacher.teacher_id  
   JOIN "user" ON teacher.user_id = "user".user_id  
-  WHERE DATE(report.create_date) = $1 
+  WHERE DATE(report.create_date) = $1 AND checkout_time IS NULL
     AND "user".user_id = $2;
   `,
   [date, userId]
@@ -49,7 +49,7 @@ const ReportModel = {
 FROM report
 JOIN child ON report.child_id = child.child_id
 LEFT JOIN "group" g ON child.group_id = g.group_id
-WHERE DATE(report.create_date) = $1;`
+WHERE checkout_time is NULL AND DATE(report.create_date) = $1;`
 ,
 
 
