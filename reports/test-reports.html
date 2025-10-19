@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports API Tester</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #4f46e5;
+            text-align: center;
+        }
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        button {
+            padding: 12px 20px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #4338ca;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .success {
+            background: #10b981;
+        }
+        .success:hover {
+            background: #059669;
+        }
+        .export-btn {
+            background: #f59e0b;
+        }
+        .export-btn:hover {
+            background: #d97706;
+        }
+        #output {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-card {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #4f46e5;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .history-table th,
+        .history-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .history-table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+        .download-link {
+            color: #4f46e5;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .download-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>📊 Reports API Tester</h1>
+
+    <div class="section">
+        <h2>🎯 Quick Stats</h2>
+        <button onclick="loadQuickStats()" class="success">Load Quick Stats</button>
+        <div id="stats-container" class="stats-grid"></div>
+    </div>
+
+    <div class="section">
+        <h2>📄 Generate Reports</h2>
+        <p>Generate reports by type, date range, and format:</p>
+        
+        <div>
+            <label>Start Date: <input type="date" id="startDate" value="2025-01-01"></label>
+            <label>End Date: <input type="date" id="endDate" value="2025-10-19"></label>
+        </div>
+        
+        <h3>PDF Reports</h3>
+        <div class="button-grid">
+            <button onclick="generateReport('children', 'pdf', 'all')">Children Report (PDF)</button>
+            <button onclick="generateReport('subscriptions', 'pdf', 'all')">Subscriptions (PDF)</button>
+            <button onclick="generateReport('complaints', 'pdf', 'all')">Complaints (PDF)</button>
+            <button onclick="generateReport('staff', 'pdf', 'all')">Staff Report (PDF)</button>
+            <button onclick="generateReport('mis', 'pdf')">MIS Report (PDF)</button>
+        </div>
+
+        <h3>CSV Reports</h3>
+        <div class="button-grid">
+            <button onclick="generateReport('attendance', 'csv', 'daily')">Attendance (CSV)</button>
+            <button onclick="generateReport('payments', 'csv', 'detailed')">Payments (CSV)</button>
+            <button onclick="generateReport('announcements', 'csv', 'all')">Announcements (CSV)</button>
+            <button onclick="generateReport('parents', 'csv', 'all')">Parents (CSV)</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📦 Export All Data</h2>
+        <button onclick="exportAllData()" class="export-btn">Export Complete Database</button>
+    </div>
+
+    <div class="section">
+        <h2>📚 Report History</h2>
+        <button onclick="loadReportHistory()" class="success">Refresh History</button>
+        <div id="history-container"></div>
+    </div>
+
+    <div class="section">
+        <h2>📋 Console Output</h2>
+        <div id="output">Waiting for actions...</div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api/admin/reports';
+
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const timestamp = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : '📝';
+            output.textContent += `[${timestamp}] ${icon} ${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('output').textContent = '';
+        }
+
+        async function loadQuickStats() {
+            log('Loading quick stats...');
+            try {
+                const response = await fetch(`${API_BASE}/quick-stats`);
+                const data = await response.json();
+
+                if (data.success) {
+                    log('Quick stats loaded successfully!', 'success');
+                    
+                    const container = document.getElementById('stats-container');
+                    container.innerHTML = `
+                        <div class="stat-card">
+                            <div class="stat-label">Current Enrollment</div>
+                            <div class="stat-value">${data.data.currentEnrollment}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Monthly Attendance</div>
+                            <div class="stat-value">${data.data.monthlyAttendanceAvg}%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Revenue This Month</div>
+                            <div class="stat-value">$${data.data.revenueThisMonth.toFixed(2)}</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Staff Count</div>
+                            <div class="stat-value">${data.data.staffCount}</div>
+                        </div>
+                    `;
+                } else {
+                    log(`Failed to load stats: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`Error loading stats: ${error.message}`, 'error');
+            }
+        }
+
+        async function generateReport(reportType, format, detailLevel = 'all') {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            log(`Generating ${reportType} report (${format})...`);
+
+            try {
+                const payload = {
+                    reportType,
+                    dateRange: { start: startDate, end: endDate },
+                    format,
+                    detailLevel,
+                    groupBy: reportType === 'attendance' ? detailLevel : undefined
+                };
+
+                const response = await fetch(`${API_BASE}/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    log(`Report generated: ${data.data.name}`, 'success');
+                    log(`Download: ${data.data.download_url}`, 'success');
+                    
+                    // Auto refresh history
+                    setTimeout(() => loadReportHistory(), 1000);
+                } else {
+                    log(`Failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function exportAllData() {
+            log('Exporting all database data...');
+
+            try {
+                const response = await fetch(`${API_BASE}/export-all`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ format: 'csv' })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    log('Export completed successfully!', 'success');
+                    log(`Download: ${data.data.download_url}`, 'success');
+                    
+                    // Auto refresh history
+                    setTimeout(() => loadReportHistory(), 1000);
+                } else {
+                    log(`Failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadReportHistory() {
+            log('Loading report history...');
+
+            try {
+                const response = await fetch(`${API_BASE}/history?limit=10&offset=0`);
+                const data = await response.json();
+
+                if (data.success) {
+                    log(`Loaded ${data.data.length} reports`, 'success');
+                    
+                    const container = document.getElementById('history-container');
+                    
+                    if (data.data.length === 0) {
+                        container.innerHTML = '<p>No reports found. Generate some reports to see them here.</p>';
+                        return;
+                    }
+
+                    let html = '<table class="history-table"><thead><tr>';
+                    html += '<th>Report Name</th><th>Type</th><th>Format</th><th>Size</th><th>Created</th><th>Action</th>';
+                    html += '</tr></thead><tbody>';
+
+                    data.data.forEach(report => {
+                        const createdDate = new Date(report.created_at).toLocaleString();
+                        html += `<tr>
+                            <td>${report.name}</td>
+                            <td>${report.type}</td>
+                            <td>${report.format.toUpperCase()}</td>
+                            <td>${report.size}</td>
+                            <td>${createdDate}</td>
+                            <td><a href="${report.download_url}" class="download-link" target="_blank">Download</a></td>
+                        </tr>`;
+                    });
+
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                } else {
+                    log(`Failed: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-load stats and history on page load
+        window.onload = () => {
+            log('Reports API Tester loaded. Ready!');
+            loadQuickStats();
+            loadReportHistory();
+        };
+    </script>
+</body>
+</html>

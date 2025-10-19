@@ -1,0 +1,21 @@
+import express from 'express';
+import {
+  getAllComplaints, getComplaintById, getComplaintsByChildId, getComplaintsByRecipient,
+  createComplaint, updateComplaint, updateComplaintStatus, updateComplaintAction, deleteComplaint, searchComplaints
+} from '../controllers/complaintController.js';
+
+const router = express.Router();
+
+// Specific routes must come before parameterized routes
+router.get('/search', searchComplaints);
+router.get('/recipient/:recipient', getComplaintsByRecipient);
+router.get('/child/:child_id', getComplaintsByChildId);
+router.get('/', getAllComplaints);
+router.get('/:complaint_id', getComplaintById);
+router.post('/', createComplaint);
+router.put('/:complaint_id', updateComplaint);
+router.patch('/:complaint_id/status', updateComplaintStatus);
+router.patch('/:complaint_id/action', updateComplaintAction);
+router.delete('/:complaint_id', deleteComplaint);
+
+export default router;
