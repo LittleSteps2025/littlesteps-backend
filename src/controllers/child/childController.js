@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import pool from "../../config/db.js";
 import childModel from "../../models/child/childModel.js";
 import { getParentByNic } from "../../models/supervisorModel.js";
-import { getAllParents } from "../../models/parent/parentModel.js";
+import { getAllParents, deleteParent } from "../../models/parent/parentModel.js";
 import { sendParentVerificationEmail } from "../../services/emailService.js";
 
 // Helper function to generate 4-digit verification code
@@ -359,18 +359,20 @@ class ChildController {
   }
   async getPackageById(req, res) {
     try {
-      const { id } = req.params;
-      console.log("Getting package for child ID:", id);
+      const { id: child_id } = req.params;
+      console.log("Getting package for child ID:", child_id);
+
+      const id = parseInt(child_id);
 
       // Validate id is a number
-      if (!id || isNaN(id)) {
+      if (!child_id || isNaN(id)) {
         return res.status(400).json({
           message: "Invalid child ID. Must be a number.",
-          received: id,
+          received: child_id,
         });
       }
 
-      const packageData = await childModel.getPackageById(parseInt(id));
+      const packageData = await childModel.getPackageById(id);
       console.log("Package data retrieved:", packageData);
 
       if (packageData) {
@@ -545,6 +547,50 @@ class ChildController {
         success: false,
         message: "Error updating child status",
         error: process.env.NODE_ENV === "development" ? error.message : undefined
+  async delete_parent(req, res) {
+    try {
+      const { id } = req.params;
+
+      // Validate input
+      if (!id) {
+        return res.status(400).json({
+          message: "Parent ID is required",
+        });
+      }
+
+      // Check if parent exists and is active
+      const parentCheck = await pool.query(
+        `SELECT u.*, p.parent_id
+         FROM "user" u
+         INNER JOIN parent p ON u.user_id = p.user_id
+         WHERE u.user_id = $1 AND u.role = 'parent' AND u.status = 'active'`,
+        [id]
+      );
+
+      if (parentCheck.rows.length === 0) {
+        return res.status(404).json({
+          message: "Parent not found or already inactive",
+        });
+      }
+
+      // Soft delete: Update user status to inactive
+      const deletedParent = await deleteParent(id);
+
+      if (!deletedParent) {
+        return res.status(500).json({
+          message: "Failed to delete parent",
+        });
+      }
+
+      res.status(200).json({
+        message: "Parent deleted successfully",
+        data: deletedParent,
+      });
+    } catch (error) {
+      console.error("Error deleting parent:", error);
+      res.status(500).json({
+        message: "Error deleting parent",
+        error: error.message,
       });
     }
   }
