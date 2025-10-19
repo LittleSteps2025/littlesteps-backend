@@ -14,9 +14,9 @@ import reportRoutes from './routes/teacher/reportRoutes.js';
 import teacherChildRoutes from './routes/teacher/childRoutes.js';
 import eventRoutesTeacher from './routes/teacher/eventRoutes.js';
 import appointmentsRoutes from './routes/teacher/appointmentsRoutes.js';
-import eventRoutes from './routes/teacher/eventRoutes.js';
+import eventTeacherRoutes from './routes/teacher/eventRoutes.js';
 import profileRoutes from './routes/teacher/profileRoutes.js';
-import childRoutes from './routes/teacher/childRoutes.js';
+import childTeacherRoutes from './routes/teacher/childRoutes.js'; 
 import announcemnents from './routes/teacher/aRoutes.js'
 
 
@@ -27,19 +27,18 @@ import childrenRoutes from './routes/parent/childrenRoutes.js';
 import viewReportRoutes from './routes/parent/viewReportRoutes.js';
 import healthRecordRoutes from './routes/parent/healthRecordRoutes.js';
 import childRoutes from './routes/child/childRoutes.js'; // Child routes
-import eventRoutes from './routes/eventRoutes.js';
+import eventRoutes from './routes/eventRoutes.js'; //m
 import announcementRoutes from './routes/announcementRoutes.js';
 import meetingRoutes from './routes/meetingRoutes.js'; // ✅ Meeting routes
 import guardianRoutes from './routes/teacher/guardianRoutes.js'; // ✅ Guardian routes
 import complaintRoutes from './routes/complaintRoutes.js'; // ✅ Complaint routes
 import supervisorReportRoutes from './routes/supervisorReportRoutes.js'; // ✅ Supervisor Report routes
 import dashboardRoutes from './routes/dashboardRoutes.js'; // ✅ Dashboard route
-import meetingRoutes from './routes/parent/meetingRoutes.js';
-import complaintRoutes from './routes/parent/complaintRoutes.js';
+import meetingParentRoutes from './routes/parent/meetingRoutes.js';
+import complaintParentRoutes from './routes/parent/complaintRoutes.js';
 import guardiansRoutes from './routes/parent/guardiansRoutes.js';
 
-// Teacher Routes
-import appointmentsRoutes from "./routes/teacher/appointmentsRoutes.js";
+
 
 // Supervisor Routes
 import supervisorRoutes from './routes/supervisorRoutes.js';
@@ -81,9 +80,9 @@ app.use('/api/teachers', teacherRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/guardians', guardianRoutes);
 app.use('/api/teachers/child', teacherChildRoutes);
-app.use('/api/events', eventRoutes);
+app.use('/api/events', eventTeacherRoutes);
 app.use('/api/profile', profileRoutes);
-app.use('/api/child', childRoutes);
+app.use('/api/child', childTeacherRoutes); //r
 app.use('/api/announcements', announcemnents);
 
 // Core Routes
@@ -105,8 +104,8 @@ app.use('/api/parent/announcements', announcementRoutes);
 app.use('/api/parent/children', childrenRoutes);
 app.use('/api/parent/reports', viewReportRoutes);
 app.use('/api/parent/health', healthRecordRoutes);
-app.use('/api/parent/meetings', meetingRoutes);
-app.use('/api/parent/complaints', complaintRoutes);
+app.use('/api/parent/meetings', meetingParentRoutes);
+app.use('/api/parent/complaints', complaintParentRoutes);
 
 // Supervisor Routes
 app.use('/api/supervisor', supervisorRoutes);
@@ -145,9 +144,9 @@ app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervis
 app.use('/api/parents', parentRoutes);
 app.use('/api', dailyRecordRoutes);
 app.use('/api/child', childRoutes); // Child routes
-app.use('/api/events', eventRoutes);
+app.use('/api/events', eventRoutes);//m
 app.use('/api/announcements', announcementRoutes);
-app.use('/api/meetings', meetingRoutes); // ✅ Meeting routes
+app.use('/api/meetings', meetingRoutes); // ✅ Meeting routes malith
 app.use('/api/complaints', complaintRoutes); // ✅ Complaint routes
 app.use('/api/supervisor-reports', supervisorReportRoutes); // ✅ Supervisor Report routes
 app.use('/api/dashboard', dashboardRoutes); // ✅ Dashboard routes - NEW
