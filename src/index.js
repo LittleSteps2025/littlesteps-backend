@@ -41,6 +41,7 @@ import adminPaymentRoutes from './routes/payment/adminPaymentRoute.js';
 // Admin Routes
 import adminDashboardRoutes from './routes/admin/dashboardRoutes.js';
 import adminReportsRoutes from './routes/admin/reportsRoutes.js';
+import adminAttendanceRoutes from './routes/admin/attendanceRoutes.js';
 
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 
@@ -101,6 +102,9 @@ app.use('/api/admin/dashboard', adminDashboardRoutes);
 
 // Admin Reports Routes
 app.use('/api/admin/reports', adminReportsRoutes);
+
+// Admin Attendance Routes
+app.use('/api/admin/attendance', adminAttendanceRoutes);
 
 // Subscription Routes
 console.log('Mounting subscription routes...');
