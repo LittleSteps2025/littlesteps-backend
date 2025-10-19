@@ -1,5 +1,16 @@
 import pool from '../../config/db.js';
 
+export const getParentIdByUserIdModel = async (userId) => {
+  const query = `
+    SELECT parent_id
+    FROM parent
+    WHERE user_id = $1
+    LIMIT 1;
+  `;
+  const { rows } = await pool.query(query, [userId]);
+  return rows[0];
+};
+
 export const insertGuardian = async ({ name, nic, relationship, phone, email, address, parent_id }) => {
   const query = `
     INSERT INTO guardian (name, nic, relationship, phone, email, address, parent_id)
