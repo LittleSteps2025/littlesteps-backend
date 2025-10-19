@@ -1,6 +1,7 @@
 import * as ReportsModel from "../../models/admin/reportsModel.js";
 import PDFDocument from 'pdfkit';
 import { createObjectCsvStringifier } from 'csv-writer';
+import ExcelJS from 'exceljs';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -482,10 +483,425 @@ const getContentType = (format) => {
   return types[format] || 'application/octet-stream';
 };
 
+// Helper function to generate Excel file
+const generateExcelReport = async (data, reportName, reportType) => {
+  const timestamp = Date.now();
+  const fileName = `report_${reportType}_${timestamp}.xlsx`;
+  const filePath = path.join(reportsDir, fileName);
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(reportName);
+
+  // Set worksheet properties
+  worksheet.properties.defaultRowHeight = 20;
+
+  if (Array.isArray(data) && data.length > 0) {
+    // Get headers from first item
+    const headers = Object.keys(data[0]);
+    
+    // Add header row with styling
+    const headerRow = worksheet.addRow(headers);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF4F46E5' }
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    
+    // Set column widths
+    headers.forEach((header, index) => {
+      const column = worksheet.getColumn(index + 1);
+      column.width = Math.max(15, header.length + 5);
+    });
+
+    // Add data rows
+    data.forEach((row) => {
+      const values = headers.map(header => {
+        const val = row[header];
+        // Format dates
+        if (val instanceof Date) {
+          return val.toISOString().split('T')[0];
+        }
+        // Handle null/undefined
+        if (val === null || val === undefined) {
+          return '';
+        }
+        return val;
+      });
+      worksheet.addRow(values);
+    });
+
+    // Add borders to all cells
+    worksheet.eachRow((row, rowNumber) => {
+      row.eachCell((cell) => {
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      });
+    });
+
+  } else if (typeof data === 'object') {
+    // Handle object data (summaries)
+    worksheet.addRow(['Key', 'Value']);
+    Object.entries(data).forEach(([key, value]) => {
+      worksheet.addRow([key, value]);
+    });
+  } else {
+    worksheet.addRow(['No data available']);
+  }
+
+  // Save workbook
+  await workbook.xlsx.writeFile(filePath);
+  const file_size = fs.statSync(filePath).size;
+
+  return { file_path: fileName, file_size, filePath };
+};
+
+// Direct download endpoints for each report type
+export const downloadChildrenReport = async (req, res) => {
+  try {
+    const data = await ReportsModel.getChildrenReportData(
+      new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      new Date().toISOString().split('T')[0],
+      'all'
+    );
+
+    const result = await generateExcelReport(data, 'Children Report', 'children');
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="children-report-${new Date().toISOString().split('T')[0]}.xlsx"`);
+    
+    const fileStream = fs.createReadStream(result.filePath);
+    fileStream.pipe(res);
+    
+    fileStream.on('end', () => {
+      // Clean up file after sending
+      fs.unlinkSync(result.filePath);
+    });
+  } catch (error) {
+    console.error('Error generating children report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating children report',
+      error: error.message
+    });
+  }
+};
+
+export const downloadAttendanceReport = async (req, res) => {
+  try {
+    // Import the attendance model dynamically
+    const attendanceModule = await import('../../models/admin/attendanceModel.js');
+    const { getAttendanceHistory } = attendanceModule;
+    
+    // Get all attendance records (no limit, use a high number)
+    const attendanceData = await getAttendanceHistory(10000, 0, null);
+
+    if (!attendanceData || attendanceData.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No attendance records found'
+      });
+    }
+
+    const result = await generateExcelReport(attendanceData, 'Attendance Records', 'attendance');
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="attendance-records-${new Date().toISOString().split('T')[0]}.xlsx"`);
+    
+    const fileStream = fs.createReadStream(result.filePath);
+    fileStream.pipe(res);
+    
+    fileStream.on('end', () => {
+      fs.unlinkSync(result.filePath);
+    });
+  } catch (error) {
+    console.error('Error generating attendance report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating attendance report',
+      error: error.message
+    });
+  }
+};
+
+export const downloadSubscriptionsReport = async (req, res) => {
+  try {
+    // Import the subscription model dynamically
+    const subscriptionModule = await import('../../models/subscriptionModel.js');
+    const SubscriptionModel = subscriptionModule.default;
+    
+    // Get all subscriptions
+    const subscriptionsData = await SubscriptionModel.findAll({});
+
+    if (!subscriptionsData || subscriptionsData.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No subscription records found'
+      });
+    }
+
+    const result = await generateExcelReport(subscriptionsData, 'Subscription Plans', 'subscriptions');
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="subscriptions-${new Date().toISOString().split('T')[0]}.xlsx"`);
+    
+    const fileStream = fs.createReadStream(result.filePath);
+    fileStream.pipe(res);
+    
+    fileStream.on('end', () => {
+      fs.unlinkSync(result.filePath);
+    });
+  } catch (error) {
+    console.error('Error generating subscriptions report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating subscriptions report',
+      error: error.message
+    });
+  }
+};
+
+export const downloadPaymentsReport = async (req, res) => {
+  try {
+    // Import the admin payment model dynamically
+    const adminPaymentModule = await import('../../models/payment/adminPaymentModel.js');
+    const { getAllPayments } = adminPaymentModule;
+    
+    // Get all payments (no filters)
+    const paymentsData = await getAllPayments({});
+
+    if (!paymentsData || paymentsData.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No payment records found'
+      });
+    }
+
+    const result = await generateExcelReport(paymentsData, 'Payment Records', 'payments');
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="payments-records-${new Date().toISOString().split('T')[0]}.xlsx"`);
+    
+    const fileStream = fs.createReadStream(result.filePath);
+    fileStream.pipe(res);
+    
+    fileStream.on('end', () => {
+      fs.unlinkSync(result.filePath);
+    });
+  } catch (error) {
+    console.error('Error generating payments report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating payments report',
+      error: error.message
+    });
+  }
+};
+
+export const downloadComplaintsReport = async (req, res) => {
+  try {
+    // Import the complaint model dynamically
+    const complaintModule = await import('../../models/parent/complaintModel.js');
+    const ComplaintModel = complaintModule.default;
+    
+    // Get all complaints
+    const complaintsData = await ComplaintModel.findAll({});
+
+    if (!complaintsData || complaintsData.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No complaint records found'
+      });
+    }
+
+    const result = await generateExcelReport(complaintsData, 'Complaints Records', 'complaints');
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="complaints-${new Date().toISOString().split('T')[0]}.xlsx"`);
+    
+    const fileStream = fs.createReadStream(result.filePath);
+    fileStream.pipe(res);
+    
+    fileStream.on('end', () => {
+      fs.unlinkSync(result.filePath);
+    });
+  } catch (error) {
+    console.error('Error generating complaints report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating complaints report',
+      error: error.message
+    });
+  }
+};
+
+export const downloadAnnouncementsReport = async (req, res) => {
+  try {
+    // Import the announcement and event models dynamically
+    const announcementModule = await import('../../models/announcementModel.js');
+    const { getAllAnnouncements } = announcementModule;
+    
+    const eventModule = await import('../../models/eventModel.js');
+    const eventModel = eventModule.default;
+    
+    // Get all announcements and events
+    const announcementsData = await getAllAnnouncements();
+    const eventsData = await eventModel.getAll();
+    
+    // Combine announcements and events
+    // Mark each record with its type
+    const combinedData = [
+      ...announcementsData.map(ann => ({
+        type: 'Announcement',
+        title: ann.title || '',
+        details: ann.details || '',
+        topic: '',
+        venue: '',
+        date: ann.date || '',
+        time: ann.time || '',
+        status: ann.status || '',
+        audience: ann.audience || '',
+        author_name: ann.author_name || '',
+        created_at: ann.created_at || ''
+      })),
+      ...eventsData.map(evt => ({
+        type: 'Event',
+        title: evt.topic || '',
+        details: evt.description || '',
+        topic: evt.topic || '',
+        venue: evt.venue || '',
+        date: evt.date || '',
+        time: evt.time || '',
+        status: '',
+        audience: '',
+        author_name: '',
+        created_at: evt.created_time || ''
+      }))
+    ];
+
+    if (!combinedData || combinedData.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No announcement or event records found'
+      });
+    }
+
+    const result = await generateExcelReport(combinedData, 'Announcements & Events', 'announcements');
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="announcements-events-${new Date().toISOString().split('T')[0]}.xlsx"`);
+    
+    const fileStream = fs.createReadStream(result.filePath);
+    fileStream.pipe(res);
+    
+    fileStream.on('end', () => {
+      fs.unlinkSync(result.filePath);
+    });
+  } catch (error) {
+    console.error('Error generating announcements report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating announcements report',
+      error: error.message
+    });
+  }
+};
+
+export const downloadStaffReport = async (req, res) => {
+  try {
+    // Import the user model dynamically
+    const userModule = await import('../../models/userModel.js');
+    const { getAllUsersService } = userModule;
+    
+    // Get all users and filter for staff (teachers, supervisors)
+    const allUsers = await getAllUsersService();
+    const staffData = allUsers.filter(user => 
+      user.role === 'teacher' || user.role === 'supervisor' || user.role === 'admin'
+    );
+
+    if (!staffData || staffData.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No staff records found'
+      });
+    }
+
+    const result = await generateExcelReport(staffData, 'Staff Members', 'staff');
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="staff-${new Date().toISOString().split('T')[0]}.xlsx"`);
+    
+    const fileStream = fs.createReadStream(result.filePath);
+    fileStream.pipe(res);
+    
+    fileStream.on('end', () => {
+      fs.unlinkSync(result.filePath);
+    });
+  } catch (error) {
+    console.error('Error generating staff report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating staff report',
+      error: error.message
+    });
+  }
+};
+
+export const downloadParentsReport = async (req, res) => {
+  try {
+    // Import the user model dynamically
+    const userModule = await import('../../models/userModel.js');
+    const { getAllUsersService } = userModule;
+    
+    // Get all users and filter for parents
+    const allUsers = await getAllUsersService();
+    const parentsData = allUsers.filter(user => user.role === 'parent');
+
+    if (!parentsData || parentsData.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No parent records found'
+      });
+    }
+
+    const result = await generateExcelReport(parentsData, 'Parents', 'parents');
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="parents-${new Date().toISOString().split('T')[0]}.xlsx"`);
+    
+    const fileStream = fs.createReadStream(result.filePath);
+    fileStream.pipe(res);
+    
+    fileStream.on('end', () => {
+      fs.unlinkSync(result.filePath);
+    });
+  } catch (error) {
+    console.error('Error generating parents report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating parents report',
+      error: error.message
+    });
+  }
+};
+
 export default {
   generateReport,
   getReportHistory,
   downloadReport,
   getQuickStats,
-  exportAllData
+  exportAllData,
+  downloadChildrenReport,
+  downloadAttendanceReport,
+  downloadSubscriptionsReport,
+  downloadPaymentsReport,
+  downloadComplaintsReport,
+  downloadAnnouncementsReport,
+  downloadStaffReport,
+  downloadParentsReport
 };
