@@ -6,6 +6,7 @@ const AnnouncementModel = {
   async getAllAnnouncements() {
     const query = `
       SELECT 
+        ann_id,
         title,
         details,
         date,
