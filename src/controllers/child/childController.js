@@ -547,6 +547,9 @@ class ChildController {
         success: false,
         message: "Error updating child status",
         error: process.env.NODE_ENV === "development" ? error.message : undefined
+      });
+    }
+  }
   async delete_parent(req, res) {
     try {
       const { id } = req.params;
