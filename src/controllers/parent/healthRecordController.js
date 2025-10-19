@@ -207,13 +207,13 @@ export const updateChildMedicalData = async (req, res) => {
       }
     }
 
-    if (Object.keys(errors).length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Validation failed",
-        errors,
-      });
-    }
+    // if (Object.keys(errors).length > 0) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Validation failed",
+    //     errors,
+    //   });
+    // }
 
     // Validate child exists
     const child = await ChildModel.findById(childId);
@@ -356,13 +356,13 @@ export const updateMedicalRecord = async (req, res) => {
     const descriptionErrors = validateDescription(description);
     if (descriptionErrors.length > 0) errors.description = descriptionErrors;
 
-    if (Object.keys(errors).length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Validation failed",
-        errors,
-      });
-    }
+    // if (Object.keys(errors).length > 0) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Validation failed",
+    //     errors,
+    //   });
+    // }
 
     // Ensure record exists
     console.log("Updating record:", { child_id, record_date });

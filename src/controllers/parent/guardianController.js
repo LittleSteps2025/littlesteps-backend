@@ -84,13 +84,31 @@ export const getGuardiansForParent = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      guardians: guardians,
-      count: guardians.length,
+      guardians,
+      count: guardians.length
     });
   } catch (error) {
-    console.error("Error fetching guardians:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    console.error('Error fetching guardians:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+export const deleteGuardian = async (req, res) => {
+  try {
+    const { guardian_id } = req.params;
+
+    if (!guardian_id) {
+      return res.status(400).json({ success: false, message: 'Guardian ID is required.' });
+    }
+
+    await deleteGuardianById(guardian_id);
+
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Guardian deleted successfully' 
+    });
+  } catch (error) {
+    console.error('Error deleting guardian:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

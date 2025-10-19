@@ -15,4 +15,6 @@ router.get('/meeting/recipient/:recipient', getMeetingsForRecipient);
 // Recipient responds to a meeting (teacher/supervisor)
 router.put('/meeting/respond', respondToMeeting);
 
+
+
 export default router;

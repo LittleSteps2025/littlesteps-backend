@@ -48,16 +48,19 @@ export const getRecordByChildAndDate = async (childId, recordDate) => {
 };
 
 // Insert record
+// Example: src/models/parent/healthRecordModel.js
+
+
 export const insertMedicalRecord = async ({ child_id, record_date, type, title, description }) => {
-  const q = `
+  const query = `
     INSERT INTO medical_records (child_id, record_date, type, title, description)
     VALUES ($1, $2, $3, $4, $5)
-    RETURNING child_id, record_date, type, title, description
+    RETURNING *;
   `;
-  const { rows } = await pool.query(q, [child_id, record_date, type, title, description]);
+  const values = [child_id, record_date, type, title, description];
+  const { rows } = await pool.query(query, values);
   return rows[0];
 };
-
 // Update record
 export const updateMedicalRecordByChildAndDate = async ({ child_id, record_date, type, title, description }) => {
   const q = `

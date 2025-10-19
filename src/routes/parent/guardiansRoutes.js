@@ -3,6 +3,7 @@ import {
   createGuardian,
   getGuardiansForParent,
   getParentIdByUserId,
+  deleteGuardian
 } from "../../controllers/parent/guardianController.js";
 
 const router = express.Router();
@@ -17,5 +18,7 @@ router.get("/get-parent-id/:userId", getParentIdByUserId);
 router.post("/guardians", createGuardian);
 
 router.get("/guardians/:parent_id", getGuardiansForParent);
+
+router.delete('/guardians/:guardian_id', deleteGuardian);
 
 export default router;
