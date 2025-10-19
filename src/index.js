@@ -17,6 +17,7 @@ import teacherChildRoutes from './routes/teacher/childRoutes.js';
 import eventRoutes from './routes/teacher/eventRoutes.js';
 import profileRoutes from './routes/teacher/profileRoutes.js';
 import childRoutes from './routes/teacher/childRoutes.js';
+import announcemnents from './routes/teacher/aRoutes.js'
 
 
 // Parent Routes
@@ -30,7 +31,6 @@ import healthRecordRoutes from './routes/parent/healthRecordRoutes.js';
 import meetingRoutes from './routes/parent/meetingRoutes.js';
 import complaintRoutes from './routes/parent/complaintRoutes.js';
 import guardiansRoutes from './routes/parent/guardiansRoutes.js';
-
 
 // Teacher Routes
 import appointmentsRoutes from "./routes/teacher/appointmentsRoutes.js";
@@ -67,6 +67,7 @@ app.use('/api/teachers/child', teacherChildRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/child', childRoutes);
+app.use('/api/announcements', announcemnents);
 
 
 // Parent Routes

@@ -29,7 +29,7 @@ const ReportModel = {
   JOIN "group" ON child.group_id = "group".group_id  
   JOIN teacher ON "group".main_teacher_id = teacher.teacher_id  
   JOIN "user" ON teacher.user_id = "user".user_id  
-  WHERE DATE(report.create_date) = $1
+  WHERE DATE(report.create_date) = $1 
     AND "user".user_id = $2;
   `,
   [date, userId]
@@ -41,16 +41,16 @@ const ReportModel = {
 
  getallReportsByDate: async (date) => {
     const result = await pool.query(
-      `
-      SELECT 
-        report.*,
-        child.name AS child_name,
-        child.age As child_age,
-        child.group_id as child_group 
-      FROM report
-      JOIN child ON report."child_id" = child.child_id
-      WHERE DATE(report.create_date) = $1
-    `,
+   `SELECT 
+  report.*,
+  child.name AS child_name,
+  child.age AS child_age,
+  g.name AS child_group
+FROM report
+JOIN child ON report.child_id = child.child_id
+LEFT JOIN "group" g ON child.group_id = g.group_id
+WHERE DATE(report.create_date) = $1;`
+,
 
 
 
