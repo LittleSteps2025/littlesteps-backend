@@ -1,38 +1,44 @@
 import admin from "firebase-admin";
-import { readFileSync } from 'fs';
-import pool from '../config/db.js';
-import bcrypt from 'bcrypt';
+import { readFileSync } from "fs";
+import pool from "../config/db.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
-const credentials = JSON.parse(readFileSync('./firebaseServiceAccount.json', 'utf8'));
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-secret-key-change-in-production";
+
+const credentials = JSON.parse(
+  readFileSync("./firebaseServiceAccount.json", "utf8")
+);
 
 // Initialize Firebase Admin (only once)
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(credentials)
+    credential: admin.credential.cert(credentials),
   });
-  console.log('🔥 Firebase initialized successfully');
+  console.log("🔥 Firebase initialized successfully");
 }
 
 export const supervisorAuth = async (req, res) => {
   const client = await pool.connect();
-  
+
   try {
-    await client.query('BEGIN');
-    
+    await client.query("BEGIN");
+
     const { name, email, password, nic, address, phone, image, cv } = req.body;
 
     // Validate input
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Name, email, and password are required'
+        message: "Name, email, and password are required",
       });
     }
 
     if (password.length < 6) {
       return res.status(400).json({
         success: false,
-        message: 'Password must be at least 6 characters long'
+        message: "Password must be at least 6 characters long",
       });
     }
 
@@ -45,7 +51,7 @@ export const supervisorAuth = async (req, res) => {
     if (emailCheck.rows.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Email already exists in database'
+        message: "Email already exists in database",
       });
     }
 
@@ -55,10 +61,10 @@ export const supervisorAuth = async (req, res) => {
       password: password,
       displayName: name,
       emailVerified: false,
-      disabled: false
+      disabled: false,
     });
 
-    console.log('✅ Firebase user created:', firebaseUser.uid);
+    console.log("✅ Firebase user created:", firebaseUser.uid);
 
     // Insert user into PostgreSQL user table
     const userResult = await client.query(
@@ -71,27 +77,27 @@ export const supervisorAuth = async (req, res) => {
         email,
         phone || null,
         image || null,
-        'supervisor', // Always supervisor for this endpoint
-        'active'
+        "supervisor", // Always supervisor for this endpoint
+        "active",
       ]
     );
 
     const dbUser = userResult.rows[0];
-    console.log('✅ Database user created:', dbUser.user_id);
+    console.log("✅ Database user created:", dbUser.user_id);
 
     // Insert supervisor-specific data
-    await client.query(
-      'INSERT INTO supervisor (user_id, cv) VALUES ($1, $2)',
-      [dbUser.user_id, cv || null]
-    );
+    await client.query("INSERT INTO supervisor (user_id, cv) VALUES ($1, $2)", [
+      dbUser.user_id,
+      cv || null,
+    ]);
 
-    console.log('✅ Supervisor record created');
+    console.log("✅ Supervisor record created");
 
-    await client.query('COMMIT');
+    await client.query("COMMIT");
 
     res.status(201).json({
       success: true,
-      message: 'Supervisor account created successfully',
+      message: "Supervisor account created successfully",
       user: {
         id: dbUser.user_id,
         firebaseUid: firebaseUser.uid,
@@ -104,41 +110,41 @@ export const supervisorAuth = async (req, res) => {
         nic: dbUser.nic,
         cv: cv || null,
         status: dbUser.status,
-        created_at: dbUser.created_at
-      }
+        created_at: dbUser.created_at,
+      },
     });
-
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('❌ Supervisor signup error:', error);
-    
+    await client.query("ROLLBACK");
+    console.error("❌ Supervisor signup error:", error);
+
     // Handle Firebase specific errors
-    if (error.code === 'auth/email-already-exists') {
+    if (error.code === "auth/email-already-exists") {
       return res.status(400).json({
         success: false,
-        message: 'Email already exists in Firebase'
+        message: "Email already exists in Firebase",
       });
     }
-    
-    if (error.code === 'auth/invalid-email') {
+
+    if (error.code === "auth/invalid-email") {
       return res.status(400).json({
         success: false,
-        message: 'Invalid email format'
+        message: "Invalid email format",
       });
     }
 
     // Handle database errors
-    if (error.code === '23505') { // PostgreSQL unique violation
+    if (error.code === "23505") {
+      // PostgreSQL unique violation
       return res.status(400).json({
         success: false,
-        message: 'Email already exists'
+        message: "Email already exists",
       });
     }
 
     res.status(500).json({
       success: false,
-      message: 'Account creation failed',
-      error: error.message
+      message: "Account creation failed",
+      error: error.message,
     });
   } finally {
     client.release();
@@ -152,7 +158,7 @@ export const supervisorLogin = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Email and password are required'
+        message: "Email and password are required",
       });
     }
 
@@ -168,7 +174,7 @@ export const supervisorLogin = async (req, res) => {
     if (userResult.rows.length === 0) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: "Invalid email or password",
       });
     }
 
@@ -177,62 +183,71 @@ export const supervisorLogin = async (req, res) => {
     // Verify password using Firebase Auth REST API
     // You need to add your Firebase Web API Key to .env file
     const firebaseApiKey = process.env.FIREBASE_API_KEY;
-    
+
     if (!firebaseApiKey) {
-      console.error('FIREBASE_API_KEY not found in environment variables');
+      console.error("FIREBASE_API_KEY not found in environment variables");
       return res.status(500).json({
         success: false,
-        message: 'Server configuration error'
+        message: "Server configuration error",
       });
     }
 
     try {
       // Use Firebase Web API to verify password
-      const firebaseResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-          returnSecureToken: true
-        })
-      });
+      const firebaseResponse = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            password: password,
+            returnSecureToken: true,
+          }),
+        }
+      );
 
       const firebaseData = await firebaseResponse.json();
 
       if (!firebaseResponse.ok) {
-        console.error('Firebase auth failed:', firebaseData);
+        console.error("Firebase auth failed:", firebaseData);
         return res.status(401).json({
           success: false,
-          message: 'Invalid email or password'
+          message: "Invalid email or password",
         });
       }
 
       // Get Firebase user details using Admin SDK
       const firebaseUser = await admin.auth().getUser(firebaseData.localId);
-      
+
       // Check if Firebase user is disabled
       if (firebaseUser.disabled) {
         return res.status(403).json({
           success: false,
-          message: 'Account is disabled'
+          message: "Account is disabled",
         });
       }
 
-      // Create a custom token for the user (password has been verified)
-      const customToken = await admin.auth().createCustomToken(firebaseUser.uid, {
-        role: dbUser.role,
-        userId: dbUser.user_id,
-        email: dbUser.email
-      });
+      // Create a JWT token for the user (password has been verified)
+      const token = jwt.sign(
+        {
+          id: dbUser.user_id,
+          firebaseUid: firebaseUser.uid,
+          email: dbUser.email,
+          role: dbUser.role,
+          sup_id: dbUser.sup_id || null,
+        },
+        JWT_SECRET,
+        { expiresIn: "24h" }
+      );
 
       console.log(`✅ Login successful for ${email} (${dbUser.role})`);
 
       res.json({
         success: true,
-        message: 'Login successful',
+        message: "Login successful",
         user: {
           id: dbUser.user_id,
           firebaseUid: firebaseUser.uid,
@@ -247,26 +262,25 @@ export const supervisorLogin = async (req, res) => {
           created_at: dbUser.created_at,
           // Include supervisor-specific data if it exists
           sup_id: dbUser.sup_id || null,
-          cv: dbUser.cv || null
+          cv: dbUser.cv || null,
         },
-        customToken: customToken
+        token: token,
+        tokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       });
-
     } catch (authError) {
-      console.error('Firebase authentication failed:', authError);
+      console.error("Firebase authentication failed:", authError);
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password'
+        message: "Invalid email or password",
       });
     }
-
   } catch (error) {
-    console.error('❌ Supervisor login error:', error);
-    
+    console.error("❌ Supervisor login error:", error);
+
     res.status(500).json({
       success: false,
-      message: 'Login failed',
-      error: error.message
+      message: "Login failed",
+      error: error.message,
     });
   }
 };
@@ -274,24 +288,24 @@ export const supervisorLogin = async (req, res) => {
 // Admin signup function - admins are stored only in user table
 export const adminAuth = async (req, res) => {
   const client = await pool.connect();
-  
+
   try {
-    await client.query('BEGIN');
-    
+    await client.query("BEGIN");
+
     const { name, email, password, nic, address, phone, image } = req.body;
 
     // Validate input
     if (!name || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Name, email, and password are required'
+        message: "Name, email, and password are required",
       });
     }
 
     if (password.length < 6) {
       return res.status(400).json({
         success: false,
-        message: 'Password must be at least 6 characters long'
+        message: "Password must be at least 6 characters long",
       });
     }
 
@@ -304,7 +318,7 @@ export const adminAuth = async (req, res) => {
     if (emailCheck.rows.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'Email already exists in database'
+        message: "Email already exists in database",
       });
     }
 
@@ -314,10 +328,10 @@ export const adminAuth = async (req, res) => {
       password: password,
       displayName: name,
       emailVerified: false,
-      disabled: false
+      disabled: false,
     });
 
-    console.log('✅ Firebase admin user created:', firebaseUser.uid);
+    console.log("✅ Firebase admin user created:", firebaseUser.uid);
 
     // Insert admin into PostgreSQL user table (no separate admin table)
     const userResult = await client.query(
@@ -330,19 +344,19 @@ export const adminAuth = async (req, res) => {
         email,
         phone || null,
         image || null,
-        'admin', // Admin role
-        'active'
+        "admin", // Admin role
+        "active",
       ]
     );
 
     const dbUser = userResult.rows[0];
-    console.log('✅ Database admin user created:', dbUser.user_id);
+    console.log("✅ Database admin user created:", dbUser.user_id);
 
-    await client.query('COMMIT');
+    await client.query("COMMIT");
 
     res.status(201).json({
       success: true,
-      message: 'Admin account created successfully',
+      message: "Admin account created successfully",
       user: {
         id: dbUser.user_id,
         firebaseUid: firebaseUser.uid,
@@ -350,41 +364,41 @@ export const adminAuth = async (req, res) => {
         email: dbUser.email,
         role: dbUser.role,
         status: dbUser.status,
-        created_at: dbUser.created_at
-      }
+        created_at: dbUser.created_at,
+      },
     });
-
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('❌ Admin signup error:', error);
-    
+    await client.query("ROLLBACK");
+    console.error("❌ Admin signup error:", error);
+
     // Handle Firebase specific errors
-    if (error.code === 'auth/email-already-exists') {
+    if (error.code === "auth/email-already-exists") {
       return res.status(400).json({
         success: false,
-        message: 'Email already exists in Firebase'
+        message: "Email already exists in Firebase",
       });
     }
-    
-    if (error.code === 'auth/invalid-email') {
+
+    if (error.code === "auth/invalid-email") {
       return res.status(400).json({
         success: false,
-        message: 'Invalid email format'
+        message: "Invalid email format",
       });
     }
 
     // Handle database errors
-    if (error.code === '23505') { // PostgreSQL unique violation
+    if (error.code === "23505") {
+      // PostgreSQL unique violation
       return res.status(400).json({
         success: false,
-        message: 'Email already exists'
+        message: "Email already exists",
       });
     }
 
     res.status(500).json({
       success: false,
-      message: 'Admin account creation failed',
-      error: error.message
+      message: "Admin account creation failed",
+      error: error.message,
     });
   } finally {
     client.release();
@@ -401,14 +415,14 @@ export const changePassword = async (req, res) => {
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Current password and new password are required'
+        message: "Current password and new password are required",
       });
     }
 
     if (newPassword.length < 6) {
       return res.status(400).json({
         success: false,
-        message: 'New password must be at least 6 characters long'
+        message: "New password must be at least 6 characters long",
       });
     }
 
@@ -421,7 +435,7 @@ export const changePassword = async (req, res) => {
     if (userResult.rows.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'User not found'
+        message: "User not found",
       });
     }
 
@@ -429,66 +443,91 @@ export const changePassword = async (req, res) => {
 
     // Verify current password with Firebase
     const firebaseApiKey = process.env.FIREBASE_API_KEY;
-    
+
     if (!firebaseApiKey) {
-      console.error('FIREBASE_API_KEY not found in environment variables');
+      console.error("FIREBASE_API_KEY not found in environment variables");
       return res.status(500).json({
         success: false,
-        message: 'Server configuration error'
+        message: "Server configuration error",
       });
     }
 
     try {
       // Verify current password using Firebase Web API
-      const firebaseResponse = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: user.email,
-          password: currentPassword,
-          returnSecureToken: true
-        })
-      });
+      const firebaseResponse = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: user.email,
+            password: currentPassword,
+            returnSecureToken: true,
+          }),
+        }
+      );
 
       const firebaseData = await firebaseResponse.json();
 
       if (!firebaseResponse.ok) {
         return res.status(400).json({
           success: false,
-          message: 'Current password is incorrect'
+          message: "Current password is incorrect",
         });
       }
 
       // Update password in Firebase using Admin SDK
       const firebaseUser = await admin.auth().getUserByEmail(user.email);
       await admin.auth().updateUser(firebaseUser.uid, {
-        password: newPassword
+        password: newPassword,
       });
 
       console.log(`✅ Password changed successfully for user: ${user.email}`);
 
       res.json({
         success: true,
-        message: 'Password changed successfully'
+        message: "Password changed successfully",
       });
-
     } catch (authError) {
-      console.error('Firebase password change failed:', authError);
+      console.error("Firebase password change failed:", authError);
       return res.status(400).json({
         success: false,
-        message: 'Current password is incorrect'
+        message: "Current password is incorrect",
+      });
+    }
+  } catch (error) {
+    console.error("❌ Password change error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Password change failed",
+      error: error.message,
+    });
+  }
+};
+
+export const verifySupervisorToken = async (req, res, next) => {
+  try {
+    const token = req.header("Authorization")?.replace("Bearer ", "");
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Access denied. No token provided.",
+        error: "NO_TOKEN",
       });
     }
 
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
   } catch (error) {
-    console.error('❌ Password change error:', error);
-    
-    res.status(500).json({
+    res.status(401).json({
       success: false,
-      message: 'Password change failed',
-      error: error.message
+      message: "Invalid token",
+      error: "INVALID_TOKEN",
     });
   }
 };
