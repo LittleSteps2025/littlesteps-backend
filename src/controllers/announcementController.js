@@ -116,9 +116,6 @@ export const update = async (req, res) => {
     console.log("Request body:", req.body); // ✅ Add this
     console.log("Request files:", req.files); // ✅ Add this
     console.log("Content-Type:", req.get("Content-Type")); // ✅ Add this
-    console.log("Update request body:", req.body); // Your existing log
-    console.log("Update announcement ID:", req.params.ann_id); // Your existing log
-
     const { title, details, status, audience, time } = req.body;
 
     // Validate required fields
@@ -141,8 +138,6 @@ export const update = async (req, res) => {
       time: time || null,
       attachment: null, // Handle file uploads separately if needed
     };
-
-    console.log("Update data:", updateData); // Debug log
 
     const updated = await AnnouncementModel.updateAnnouncement(
       req.params.ann_id,
