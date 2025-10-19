@@ -8,5 +8,9 @@ export const getAnnouncementsForParents = async () => {
     ORDER BY date DESC, time DESC
   `;
   const { rows } = await pool.query(query);
-  return rows;
+  const normalized = rows.map((r) => ({
+    ...r,
+    date: r.date instanceof Date ? r.date.toISOString().split('T')[0] : String(r.date),
+  }));
+  return normalized;
 };

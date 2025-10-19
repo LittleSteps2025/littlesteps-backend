@@ -5,14 +5,24 @@ const announcementModel = {
   async getAll() {
     const query = 'SELECT * FROM announcement ORDER BY created_at DESC';
     const { rows } = await pool.query(query);
-    return rows;
+    // Normalize date field to YYYY-MM-DD string to avoid timezone conversion issues
+    const normalized = rows.map((r) => ({
+      ...r,
+      date: r.date instanceof Date ? r.date.toISOString().split('T')[0] : String(r.date),
+    }));
+    return normalized;
   },
 
   // Get single announcement by ID
   async getById(id) {
     const query = 'SELECT * FROM announcement WHERE ann_id = $1';
     const { rows } = await pool.query(query, [id]);
-    return rows[0];
+    const row = rows[0];
+    if (!row) return row;
+    return {
+      ...row,
+      date: row.date instanceof Date ? row.date.toISOString().split('T')[0] : String(row.date),
+    };
   },
 
   // Create new announcement
