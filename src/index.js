@@ -58,6 +58,8 @@ import paymentRoutes from './routes/payment/paymentRoute.js';
 import adminPaymentRoutes from './routes/payment/adminPaymentRoute.js';
 import adminDashboardRoutes from './routes/admin/dashboardRoutes.js';
 import adminReportsRoutes from './routes/admin/reportsRoutes.js';
+import adminAttendanceRoutes from './routes/admin/attendanceRoutes.js';
+
 // import adminAttendanceRoutes from './routes/admin/attendanceRoutes.js';
 import subscriptionRoutes from './routes/subscriptionRoutes.js';
 
@@ -126,31 +128,21 @@ app.use('/api/admin/dashboard', adminDashboardRoutes);
 // Admin Reports Routes
 app.use('/api/admin/reports', adminReportsRoutes);
 
-//Routes
+// Admin Attendance Routes
+app.use('/api/admin/attendance', adminAttendanceRoutes);
 
-// app.use('/api', dailyRecordRoutes);
-
-//Error handling middleware 
-// app.use(errorHandler)
-// //create table before starting the server
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-//Testing POSTGRES connection
-
-// Routes
-app.use('/api/users', userRoutes); // Example: http://localhost:3001/api/users
-app.use('/api/reports', reportRoutes); // ✅ Example: http://localhost:3001/api/reports
-app.use('/api/guardians', guardianRoutes); // ✅ Example: http://localhost:3001/api/guardians
-app.use('/api/supervisors', supervisorRoutes); // ✅ Supervisor and Admin routes
-app.use('/api/teachers', teacherRoutes); // ✅ Teacher routes (same as supervisor)
-app.use('/api/parents', parentRoutes);
-app.use('/api', dailyRecordRoutes);
-app.use('/api/child', childRoutes); // Child routes
-app.use('/api/events', eventRoutes);
-app.use('/api/announcements', announcementRoutes);
-app.use('/api/meetings', meetingRoutes); // ✅ Meeting routes
-app.use('/api/complaints', complaintRoutes); // ✅ Complaint routes
-app.use('/api/supervisor-reports', supervisorReportRoutes); // ✅ Supervisor Report routes
-app.use('/api/dashboard', dashboardRoutes); // ✅ Dashboard routes - NEW
+// Subscription Routes
+console.log('Mounting subscription routes...');
+app.use('/api/subscriptions', (req, res, next) => {
+  console.log('Incoming request to subscriptions:', {
+    method: req.method,
+    path: req.path,
+    query: req.query,
+    body: req.body
+  });
+  next();
+}, subscriptionRoutes);
+console.log('Subscription routes mounted.');
 
 // Admin Routes
 app.use('/api/admin/dashboard', adminDashboardRoutes);
