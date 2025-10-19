@@ -1,34 +1,26 @@
-import pool from '../../config/db.js';
+import pool from "../../config/db.js";
 
 class SupervisorPaymentModel {
   static async findAll(filters = {}) {
     try {
       let query = `
-        SELECT 
-          p.payment_id,
+        SELECT
+          p.id as payment_id,
           p.amount,
           p.created_at,
-          p.parent_id,
+          p.parent_email,
           p.child_id,
-          p.package_id,
-          p.month,
-          p.method,
           p.status,
-          p.transaction_ref,
-          p.notes,
           p.order_id,
-          pr.first_name as parent_first_name,
-          pr.last_name as parent_last_name,
-          c.first_name as child_first_name,
-          c.last_name as child_last_name,
-          pkg.name as package_name
+          p.currency,
+          c.name as child_name,
+          u.name as parent_name
         FROM payments p
-        LEFT JOIN parents pr ON p.parent_id = pr.parent_id
-        LEFT JOIN children c ON p.child_id = c.child_id
-        LEFT JOIN packages pkg ON p.package_id = pkg.package_id
+        LEFT JOIN child c ON p.child_id = c.child_id
+        LEFT JOIN "user" u ON p.parent_email = u.email
         WHERE 1=1`;
-      
-      console.log('Checking if payments table exists...');
+
+      console.log("Checking if payments table exists...");
       // Check if the payments table exists
       const tableCheck = await pool.query(`
         SELECT EXISTS (
@@ -37,36 +29,36 @@ class SupervisorPaymentModel {
           AND table_name = 'payments'
         );
       `);
-      console.log('Table check result:', tableCheck.rows[0]);
+      console.log("Table check result:", tableCheck.rows[0]);
 
       // If table doesn't exist, create it
       if (!tableCheck.rows[0].exists) {
-        console.log('Payments table does not exist. Creating it...');
-        const fs = await import('fs');
-        const path = await import('path');
-        const sqlPath = path.join(process.cwd(), 'src', 'data', 'payments.sql');
-        const createTableSQL = fs.readFileSync(sqlPath, 'utf8');
+        console.log("Payments table does not exist. Creating it...");
+        const fs = await import("fs");
+        const path = await import("path");
+        const sqlPath = path.join(process.cwd(), "src", "data", "payments.sql");
+        const createTableSQL = fs.readFileSync(sqlPath, "utf8");
         await pool.query(createTableSQL);
-        console.log('Payments table created successfully');
+        console.log("Payments table created successfully");
       }
 
       // Check table structure
-      console.log('Checking payments table structure...');
+      console.log("Checking payments table structure...");
       const tableStructure = await pool.query(`
         SELECT column_name, data_type, is_nullable
         FROM information_schema.columns
         WHERE table_name = 'payments';
       `);
-      console.log('Table structure:', tableStructure.rows);
-      
+      console.log("Table structure:", tableStructure.rows);
+
       // Count total records
-      console.log('Counting total payment records...');
-      const countQuery = await pool.query('SELECT COUNT(*) FROM payments;');
-      console.log('Total payment records:', countQuery.rows[0].count);
-      
+      console.log("Counting total payment records...");
+      const countQuery = await pool.query("SELECT COUNT(*) FROM payments;");
+      console.log("Total payment records:", countQuery.rows[0].count);
+
       // Insert some test data if table is empty
-      if (countQuery.rows[0].count === '0') {
-        console.log('No payment records found. Inserting test data...');
+      if (countQuery.rows[0].count === "0") {
+        console.log("No payment records found. Inserting test data...");
         await pool.query(`
           INSERT INTO payments (amount, parent_id, child_id, month, method, status, notes)
           SELECT 
@@ -82,11 +74,11 @@ class SupervisorPaymentModel {
             CASE WHEN random() < 0.7 THEN 'Paid' ELSE 'Pending' END,
             'Test payment record'
           FROM 
-            parents p
-            JOIN children c ON c.parent_id = p.parent_id
+            parent p
+            JOIN children c ON c.parent_id = p.id
           LIMIT 5;
         `);
-        console.log('Test data inserted');
+        console.log("Test data inserted");
       }
 
       const values = [];
@@ -122,12 +114,12 @@ class SupervisorPaymentModel {
         paramCount++;
       }
 
-      query += ' ORDER BY p.created_at DESC';
+      query += " ORDER BY p.created_at DESC";
 
       const result = await pool.query(query, values);
       return result.rows;
     } catch (error) {
-      console.error('Error in findAll payments:', error);
+      console.error("Error in findAll payments:", error);
       throw error;
     }
   }
@@ -135,34 +127,26 @@ class SupervisorPaymentModel {
   static async findById(paymentId) {
     try {
       const query = `
-        SELECT 
-          p.payment_id,
+        SELECT
+          p.id as payment_id,
           p.amount,
           p.created_at,
-          p.parent_id,
+          p.parent_email,
           p.child_id,
-          p.package_id,
-          p.month,
-          p.method,
           p.status,
-          p.transaction_ref,
-          p.notes,
           p.order_id,
-          pr.first_name as parent_first_name,
-          pr.last_name as parent_last_name,
-          c.first_name as child_first_name,
-          c.last_name as child_last_name,
-          pkg.name as package_name
+          p.currency,
+          c.name as child_name,
+          u.name as parent_name
         FROM payments p
-        LEFT JOIN parents pr ON p.parent_id = pr.parent_id
-        LEFT JOIN children c ON p.child_id = c.child_id
-        LEFT JOIN packages pkg ON p.package_id = pkg.package_id
-        WHERE p.payment_id = $1`;
+        LEFT JOIN child c ON p.child_id = c.child_id
+        LEFT JOIN "user" u ON p.parent_email = u.email
+        WHERE p.id = $1`;
 
       const result = await pool.query(query, [paymentId]);
       return result.rows[0];
     } catch (error) {
-      console.error('Error in findById payment:', error);
+      console.error("Error in findById payment:", error);
       throw error;
     }
   }
@@ -170,65 +154,47 @@ class SupervisorPaymentModel {
   static async create(data) {
     const {
       amount,
-      parent_id,
+      parent_email,
       child_id,
-      package_id,
-      month,
-      method,
-      status = 'Pending',
-      transaction_ref,
-      notes,
-      order_id
+      order_id,
+      currency = "LKR",
+      status = "Pending",
     } = data;
 
     try {
       const query = `
         INSERT INTO payments (
           amount,
-          parent_id,
+          parent_email,
           child_id,
-          package_id,
-          month,
-          method,
-          status,
-          transaction_ref,
-          notes,
           order_id,
+          currency,
+          status,
           created_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP)
+        VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
         RETURNING *`;
 
       const values = [
         amount,
-        parent_id,
+        parent_email,
         child_id,
-        package_id,
-        month,
-        method,
+        order_id,
+        currency,
         status,
-        transaction_ref,
-        notes,
-        order_id
       ];
 
       const result = await pool.query(query, values);
       return result.rows[0];
     } catch (error) {
-      console.error('Error in create payment:', error);
+      console.error("Error in create payment:", error);
       throw error;
     }
   }
 
   static async update(paymentId, data) {
     try {
-      const allowedUpdates = [
-        'amount',
-        'status',
-        'method',
-        'transaction_ref',
-        'notes'
-      ];
+      const allowedUpdates = ["amount", "status", "currency"];
       const updates = [];
       const values = [];
       let paramCount = 1;
@@ -246,14 +212,14 @@ class SupervisorPaymentModel {
       values.push(paymentId);
       const query = `
         UPDATE payments 
-        SET ${updates.join(', ')}
-        WHERE payment_id = $${paramCount}
+        SET ${updates.join(", ")}
+        WHERE id = $${paramCount}
         RETURNING *`;
 
       const result = await pool.query(query, values);
       return result.rows[0];
     } catch (error) {
-      console.error('Error in update payment:', error);
+      console.error("Error in update payment:", error);
       throw error;
     }
   }
@@ -271,7 +237,7 @@ class SupervisorPaymentModel {
       const result = await pool.query(query);
       return result.rows;
     } catch (error) {
-      console.error('Error in getPaymentStats:', error);
+      console.error("Error in getPaymentStats:", error);
       throw error;
     }
   }
@@ -292,7 +258,7 @@ class SupervisorPaymentModel {
       const result = await pool.query(query);
       return result.rows;
     } catch (error) {
-      console.error('Error in getMonthlyRevenue:', error);
+      console.error("Error in getMonthlyRevenue:", error);
       throw error;
     }
   }
