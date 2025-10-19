@@ -1,5 +1,5 @@
 import express from 'express';
-import { createGuardian , getGuardiansForParent } from '../../controllers/parent/guardianController.js';
+import { createGuardian , getGuardiansForParent, deleteGuardian} from '../../controllers/parent/guardianController.js';
 
 const router = express.Router();
 
@@ -10,5 +10,7 @@ const router = express.Router();
 router.post('/guardians', createGuardian);
 
 router.get('/guardians/:parent_id', getGuardiansForParent);
+
+router.delete('/guardians/:guardian_id', deleteGuardian);
 
 export default router;
