@@ -14,3 +14,25 @@ export const getAnnouncementsForParents = async () => {
   }));
   return normalized;
 };
+
+export const findMeetingsByChild = async (childId) => {
+  const q = `
+    SELECT meeting_id, child_id, recipient, meeting_date, meeting_time, reason, response, status
+    FROM meeting
+    WHERE child_id = $1
+    ORDER BY meeting_date DESC, meeting_time DESC
+  `;
+  const { rows } = await pool.query(q, [childId]);
+  return rows;
+};
+
+export const getEventsForParents = async () => {
+  const query = `
+    SELECT event_id, topic, description, venue, date, time, user_id, created_time
+    FROM event
+    ORDER BY date DESC, time DESC
+  `;
+  const { rows } = await pool.query(query);
+  return rows;
+};
+

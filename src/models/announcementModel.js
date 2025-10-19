@@ -1,9 +1,9 @@
-import pool from '../config/db.js';
+import pool from "../config/db.js";
 
 const announcementModel = {
   // Get all announcements
   async getAll() {
-    const query = 'SELECT * FROM announcement ORDER BY created_at DESC';
+    const query = "SELECT * FROM announcement ORDER BY created_at DESC";
     const { rows } = await pool.query(query);
     // Normalize date field to YYYY-MM-DD string to avoid timezone conversion issues
     const normalized = rows.map((r) => ({
@@ -15,7 +15,7 @@ const announcementModel = {
 
   // Get single announcement by ID
   async getById(id) {
-    const query = 'SELECT * FROM announcement WHERE ann_id = $1';
+    const query = "SELECT * FROM announcement WHERE ann_id = $1";
     const { rows } = await pool.query(query, [id]);
     const row = rows[0];
     if (!row) return row;
@@ -26,20 +26,41 @@ const announcementModel = {
   },
 
   // Create new announcement
-  async create({ title, date, time, details, attachment, audience, session_id, user_id }) {
+  async create({
+    title,
+    date,
+    time,
+    details,
+    attachment,
+    audience,
+    session_id,
+    user_id,
+  }) {
     const query = `
       INSERT INTO announcement 
         (title, date, time, details, attachment, audience, session_id, user_id)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `;
-    const values = [title, date, time, details, attachment, audience, session_id, user_id];
+    const values = [
+      title,
+      date,
+      time,
+      details,
+      attachment,
+      audience,
+      session_id,
+      user_id,
+    ];
     const { rows } = await pool.query(query, values);
     return rows[0];
   },
 
   // Update announcement
-  async update(id, { title, date, time, details, attachment, audience, session_id }) {
+  async update(
+    id,
+    { title, date, time, details, attachment, audience, session_id }
+  ) {
     const query = `
       UPDATE announcement
       SET 
@@ -53,17 +74,103 @@ const announcementModel = {
       WHERE ann_id = $8
       RETURNING *
     `;
-    const values = [title, date, time, details, attachment, audience, session_id, id];
+    const values = [
+      title,
+      date,
+      time,
+      details,
+      attachment,
+      audience,
+      session_id,
+      id,
+    ];
     const { rows } = await pool.query(query, values);
     return rows[0];
   },
 
   // Delete announcement
   async delete(id) {
-    const query = 'DELETE FROM announcement WHERE ann_id = $1 RETURNING *';
+    const query = "DELETE FROM announcement WHERE ann_id = $1 RETURNING *";
     const { rows } = await pool.query(query, [id]);
     return rows[0];
+  },
+};
+
+// Get all announcements (with author info and published_by object)
+export const getAllAnnouncements = async () => {
+  const result = await pool.query(
+    `SELECT 
+       a.*,
+       u.name AS author_name, 
+       u.email AS author_email,
+       u.role AS author_role,
+       jsonb_build_object(
+         'id', u.user_id,
+         'name', u.name,
+         'role', u.role
+       ) as published_by
+     FROM announcement a
+     LEFT JOIN "user" u ON a.user_id = u.user_id
+     ORDER BY a.created_at DESC`
+  );
+  return result.rows;
+};
+
+// Get a single announcement by ID
+export const getAnnouncementById = async (ann_id) => {
+  const result = await pool.query(
+    `SELECT 
+       a.*,
+       u.name AS author_name, 
+       u.email AS author_email,
+       u.role AS author_role,
+       jsonb_build_object(
+         'id', u.user_id,
+         'name', u.name,
+         'role', u.role
+       ) as published_by
+     FROM announcement a
+     LEFT JOIN "user" u ON a.user_id = u.user_id
+     WHERE a.ann_id = $1`,
+    [ann_id]
+  );
+  return result.rows[0];
+};
+
+// Valid audience values: 1=supervisor, 2=teacher, 3=parent, 4=supervisor & teacher, 5=teacher & parent
+const validAudiences = [1, 2, 3, 4, 5];
+
+// Modified updateAnnouncement function to match database schema
+export const updateAnnouncement = async (
+  ann_id,
+  { title, details, status, audience, time = null, attachment = null }
+) => {
+  if (!validAudiences.includes(audience)) {
+    throw new Error(
+      "Invalid audience value. Must be 1=supervisor, 2=teacher, 3=parent, 4=supervisor & teacher, 5=teacher & parent"
+    );
   }
+
+  const result = await pool.query(
+    `UPDATE announcement SET
+     title = $1, details = $2, status = $3, audience = $4, time = $5, attachment = $6
+     WHERE ann_id = $7 RETURNING *`,
+    [title, details, status, audience, time, attachment, ann_id]
+  );
+  return result.rows[0];
+};
+
+// Create a new announcement
+export const createAnnouncement = async (announcementData) => {
+  const { audience } = announcementData;
+
+  if (!validAudiences.includes(audience)) {
+    throw new Error(
+      "Invalid audience value. Must be 1=supervisor, 2=teacher, 3=parent, 4=supervisor & teacher, 5=teacher & parent"
+    );
+  }
+
+  return await announcementModel.create(announcementData);
 };
 
 export default announcementModel;

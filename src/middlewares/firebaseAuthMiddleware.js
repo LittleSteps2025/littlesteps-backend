@@ -1,20 +1,16 @@
 import admin from 'firebase-admin';
-import pool from '../config/db.js'; // Use .js extension for ES modules
-
-
-// Initialize Firebase Admin (only once in the app)
-// if (!admin.apps.length) {
-//   admin.initializeApp({
-//     credential: admin.credential.applicationDefault(), // or use service account
-//   });
-// }
-
-
-
-//chek mekata emergency notes wedada kiyla
+import pool from '../config/db.js';
 import { readFileSync } from 'fs';
-const serviceAccount = JSON.parse(readFileSync('./firebaseServiceAccount.json', 'utf8'));
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Read the service account file using the correct path
+const serviceAccount = JSON.parse(
+  readFileSync(join(__dirname, '../../firebaseServiceAccount.json'))
+);
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -25,7 +21,21 @@ if (!admin.apps.length) {
 
 
 
+// Public endpoints that don't require authentication
+const publicEndpoints = [
+  '/api/subscriptions',  // Temporarily public for testing
+  '/api/complaints',     // Temporarily public for testing
+];
+
 const authenticateUser = async (req, res, next) => {
+  console.log('Auth middleware - Request path:', req.path);
+  
+  // Check if the endpoint is public
+  if (publicEndpoints.some(endpoint => req.path.startsWith(endpoint))) {
+    console.log('Public endpoint detected - skipping authentication');
+    return next();
+  }
+
   console.log('Incoming Authorization header:', req.headers.authorization);
   const authHeader = req.headers.authorization;
 
