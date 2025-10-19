@@ -14,7 +14,7 @@ export const createParent = async (parentData) => {
       VALUES ($1, $2, $3, $4)
       RETURNING id, email, name, verified, created_at, updated_at;
     `;
- 
+
   try {
     const result = await pool.query(query, [
       email,
@@ -95,12 +95,12 @@ export const updatePassword = async (id, newPassword) => {
   }
 };
 
-// Delete parent
-export const deleteParent = async (id) => {
-  const query = "DELETE FROM parent WHERE id = $1 RETURNING id, email, name;";
+// Delete parent (soft delete)
+export const deleteParent = async (userId) => {
+  const query = `UPDATE "user" SET status = 'inactive' WHERE user_id = $1 AND role = 'parent' RETURNING user_id, email, name;`;
 
   try {
-    const result = await pool.query(query, [id]);
+    const result = await pool.query(query, [userId]);
     return result.rows[0];
   } catch (error) {
     console.error("Error deleting parent:", error);
@@ -115,7 +115,7 @@ export const getAllParents = async () => {
     FROM "user" u 
     JOIN parent p ON u.user_id = p.user_id 
     JOIN child c ON p.parent_id = c.parent_id 
-    WHERE u.role = 'parent' 
+    WHERE u.role = 'parent' AND u.status = 'active'
     GROUP BY u.user_id
     ORDER BY u.created_at DESC`;
 
