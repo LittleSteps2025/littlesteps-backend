@@ -17,11 +17,11 @@ class DashboardModel {
   }
 
   /**
-   * Get count of unique parents from child table
+   * Get count of parents from parent table
    */
   async getActiveParents() {
     try {
-      const query = 'SELECT COUNT(DISTINCT parent_id) as count FROM child';
+      const query = 'SELECT COUNT(*) as count FROM parent';
       const { rows } = await pool.query(query);
       console.log('📊 Active parents query result:', rows[0]);
       return parseInt(rows[0].count) || 0;
@@ -32,15 +32,13 @@ class DashboardModel {
   }
 
   /**
-   * Get count of active teachers from user and teacher tables
+   * Get count of active teachers from teacher table
    */
   async getActiveTeachers() {
     try {
       const query = `
         SELECT COUNT(*) as count
-        FROM "user" u
-        INNER JOIN teacher t ON u.user_id = t.user_id
-        WHERE u.role = 'teacher' AND u.status = 'active'
+        FROM teacher
       `;
       const { rows } = await pool.query(query);
       console.log('📊 Active teachers query result:', rows[0]);
@@ -155,9 +153,131 @@ class DashboardModel {
   }
 
   /**
-   * Get today's check-ins count from report table
+   * Get weekly attendance data for graph
    */
-  async getTodayCheckIns() {
+  async getWeeklyAttendanceData() {
+    try {
+      const query = `
+        SELECT 
+          TO_CHAR(date_series, 'Day') as day_name,
+          EXTRACT(DOW FROM date_series) as day_num,
+          COUNT(DISTINCT r.child_id) as check_ins
+        FROM generate_series(
+          DATE_TRUNC('week', CURRENT_DATE),
+          DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '6 days',
+          INTERVAL '1 day'
+        ) as date_series
+        LEFT JOIN report r ON DATE(r.arrived_time) = DATE(date_series)
+        GROUP BY date_series, day_num
+        ORDER BY day_num
+      `;
+      
+      const { rows } = await pool.query(query);
+      console.log('📊 Weekly attendance data:', rows);
+      return rows;
+    } catch (error) {
+      console.error('❌ Error in getWeeklyAttendanceData:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get monthly attendance data for graph
+   */
+  async getMonthlyAttendanceData() {
+    try {
+      const query = `
+        SELECT 
+          TO_CHAR(date_series, 'DD Mon') as date_label,
+          EXTRACT(DAY FROM date_series) as day_num,
+          COUNT(DISTINCT r.child_id) as check_ins
+        FROM generate_series(
+          CURRENT_DATE - INTERVAL '29 days',
+          CURRENT_DATE,
+          INTERVAL '1 day'
+        ) as date_series
+        LEFT JOIN report r ON DATE(r.arrived_time) = DATE(date_series)
+        GROUP BY date_series, day_num
+        ORDER BY date_series
+      `;
+      
+      const { rows } = await pool.query(query);
+      console.log('📊 Monthly attendance data:', rows);
+      return rows;
+    } catch (error) {
+      console.error('❌ Error in getMonthlyAttendanceData:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get weekly complaints data for graph (supervisor complaints only)
+   */
+  async getWeeklyComplaintsData() {
+    try {
+      const query = `
+        SELECT 
+          TO_CHAR(date_series, 'Day') as day_name,
+          EXTRACT(DOW FROM date_series) as day_num,
+          COUNT(c.complaint_id) as complaint_count,
+          SUM(CASE WHEN LOWER(c.status) = 'pending' THEN 1 ELSE 0 END) as pending_count,
+          SUM(CASE WHEN LOWER(c.status) = 'resolved' THEN 1 ELSE 0 END) as resolved_count
+        FROM generate_series(
+          DATE_TRUNC('week', CURRENT_DATE),
+          DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '6 days',
+          INTERVAL '1 day'
+        ) as date_series
+        LEFT JOIN complaints c ON DATE(c.date) = DATE(date_series)
+          AND LOWER(TRIM(c.recipient)) = 'supervisor'
+        GROUP BY date_series, day_num
+        ORDER BY day_num
+      `;
+      
+      const { rows } = await pool.query(query);
+      console.log('📊 Weekly complaints data:', rows);
+      return rows;
+    } catch (error) {
+      console.error('❌ Error in getWeeklyComplaintsData:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get monthly complaints data for graph (supervisor complaints only)
+   */
+  async getMonthlyComplaintsData() {
+    try {
+      const query = `
+        SELECT 
+          TO_CHAR(date_series, 'DD Mon') as date_label,
+          EXTRACT(DAY FROM date_series) as day_num,
+          COUNT(c.complaint_id) as complaint_count,
+          SUM(CASE WHEN LOWER(c.status) = 'pending' THEN 1 ELSE 0 END) as pending_count,
+          SUM(CASE WHEN LOWER(c.status) = 'resolved' THEN 1 ELSE 0 END) as resolved_count
+        FROM generate_series(
+          CURRENT_DATE - INTERVAL '29 days',
+          CURRENT_DATE,
+          INTERVAL '1 day'
+        ) as date_series
+        LEFT JOIN complaints c ON DATE(c.date) = DATE(date_series)
+          AND LOWER(TRIM(c.recipient)) = 'supervisor'
+        GROUP BY date_series, day_num
+        ORDER BY date_series
+      `;
+      
+      const { rows } = await pool.query(query);
+      console.log('📊 Monthly complaints data:', rows);
+      return rows;
+    } catch (error) {
+      console.error('❌ Error in getMonthlyComplaintsData:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get today's attendance (children who checked in today)
+   */
+  async getTodayAttendance() {
     try {
       const query = `
         SELECT COUNT(DISTINCT child_id) as count 
@@ -165,10 +285,10 @@ class DashboardModel {
         WHERE DATE(arrived_time) = CURRENT_DATE
       `;
       const { rows } = await pool.query(query);
-      console.log('📊 Today check-ins query result:', rows[0]);
+      console.log('📊 Today attendance query result:', rows[0]);
       return parseInt(rows[0].count) || 0;
     } catch (error) {
-      console.error('❌ Error in getTodayCheckIns:', error);
+      console.error('❌ Error in getTodayAttendance:', error);
       return 0;
     }
   }
@@ -291,7 +411,7 @@ class DashboardModel {
         activeParents,
         activeTeachers,
         activeSupervisors,
-        todayCheckIns,
+        todayAttendance,
         monthlyRevenue,
         upcomingEventsCount,
         pendingComplaints,
@@ -304,7 +424,7 @@ class DashboardModel {
         this.getActiveParents(),
         this.getActiveTeachers(),
         this.getActiveSupervisors(),
-        this.getTodayCheckIns(),
+        this.getTodayAttendance(),
         this.getMonthlyRevenue(),
         this.getTotalEvents(),
         this.getPendingComplaints(),
@@ -320,7 +440,7 @@ class DashboardModel {
           activeParents,
           activeTeachers,
           activeSupervisors,
-          todayCheckIns,
+          todayAttendance,
           monthlyRevenue,
           upcomingEvents: upcomingEventsCount,
           pendingComplaints,

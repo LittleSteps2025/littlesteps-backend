@@ -259,7 +259,7 @@ class MeetingModel {
   }
 
   // Search supervisor meetings with filters
-  async searchSupervisorMeetings(searchTerm, response = null, dateFrom = null, dateTo = null) {
+  async searchSupervisorMeetings(searchTerm, status = null, dateFrom = null, dateTo = null) {
     let query = `
       SELECT 
         m.*,
@@ -281,16 +281,9 @@ class MeetingModel {
     const params = [];
     let paramIndex = 1;
 
-    if (response && response !== 'All Status') {
-      query += ` AND (
-        CASE 
-          WHEN $${paramIndex} = 'Pending' THEN (m.response IS NULL OR m.response = '' OR m.response ILIKE '%pending%')
-          WHEN $${paramIndex} = 'Confirmed' THEN m.response ILIKE '%confirmed%'
-          WHEN $${paramIndex} = 'Cancelled' THEN m.response ILIKE '%cancelled%'
-          ELSE true
-        END
-      )`;
-      params.push(response);
+    if (status && status !== 'All Status') {
+      query += ` AND m.status = $${paramIndex}`;
+      params.push(status.toLowerCase());
       paramIndex++;
     }
 
