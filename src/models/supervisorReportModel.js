@@ -167,11 +167,17 @@ const supervisorReportModel = {
 
       console.log(`Fetching data for ${startDate} to ${endDate}`);
 
-      // Get new children admitted in the month
+      // Get new children admitted in the month with details
       const newChildrenQuery = `
-        SELECT COUNT(*) as count
+        SELECT 
+          child_id,
+          name,
+          dob,
+          parent_id,
+          created_at
         FROM child
         WHERE DATE(created_at) BETWEEN $1 AND $2
+        ORDER BY created_at DESC
       `;
       const newChildrenResult = await pool.query(newChildrenQuery, [
         startDate,
@@ -181,6 +187,21 @@ const supervisorReportModel = {
       // Get total children count
       const totalChildrenQuery = `SELECT COUNT(*) as total FROM child`;
       const totalChildrenResult = await pool.query(totalChildrenQuery);
+
+      // Calculate attendance percentage from child records
+      // Count children with attendance records in the month
+      const attendanceQuery = `
+        SELECT 
+          COUNT(DISTINCT child_id) as attended_count,
+          COUNT(DISTINCT CASE WHEN child_id IS NOT NULL THEN child_id END) as total_count
+        FROM child
+        WHERE created_at <= $1
+      `;
+      const attendanceResult = await pool.query(attendanceQuery, [endDate]);
+      
+      const totalChildren = parseInt(totalChildrenResult.rows[0]?.total) || 0;
+      const attendedCount = parseInt(attendanceResult.rows[0]?.attended_count) || 0;
+      const attendancePercentage = totalChildren > 0 ? Math.round((attendedCount / totalChildren) * 100) : 0;
 
       // Get complaints for the month with status breakdown
       const complaintsQuery = `
@@ -213,13 +234,29 @@ const supervisorReportModel = {
         endDate,
       ]);
 
-      // Calculate average attendance (mock data - replace with actual attendance table if available)
-      const averageAttendance = 85; // Placeholder
+      // Get events for the month
+      const eventsQuery = `
+        SELECT 
+          event_id,
+          topic,
+          description,
+          TO_CHAR(date, 'YYYY-MM-DD') as date,
+          time,
+          venue,
+          created_time
+        FROM event
+        WHERE DATE(date) BETWEEN $1 AND $2
+        ORDER BY date, time
+      `;
+      const eventsResult = await pool.query(eventsQuery, [
+        startDate,
+        endDate,
+      ]);
 
-      const newChildren = newChildrenResult.rows[0];
-      const totalChildren = totalChildrenResult.rows[0];
+      const newChildren = newChildrenResult.rows;
       const complaints = complaintsResult.rows[0];
       const meetings = meetingsResult.rows[0];
+      const events = eventsResult.rows;
 
       return {
         period: {
@@ -229,8 +266,15 @@ const supervisorReportModel = {
           endDate,
         },
         children: {
-          newAdmissions: parseInt(newChildren?.count) || 0,
-          totalEnrolled: parseInt(totalChildren?.total) || 0,
+          newAdmissions: newChildren.length,
+          totalEnrolled: totalChildren,
+          admissionsList: newChildren.map(child => ({
+            child_id: child.child_id,
+            name: child.name,
+            dob: child.dob,
+            parent_id: child.parent_id,
+            admitted_date: child.created_at
+          }))
         },
         complaints: {
           total: parseInt(complaints?.total_count) || 0,
@@ -245,9 +289,21 @@ const supervisorReportModel = {
           confirmed: parseInt(meetings?.confirmed_count) || 0,
           cancelled: parseInt(meetings?.cancelled_count) || 0,
         },
+        events: {
+          total: events.length,
+          eventsList: events.map(event => ({
+            event_id: event.event_id,
+            topic: event.topic,
+            description: event.description,
+            date: event.date,
+            time: event.time,
+            venue: event.venue
+          }))
+        },
         attendance: {
-          averageRate: averageAttendance,
-          totalStudents: parseInt(totalChildren?.total) || 0,
+          averageRate: attendancePercentage,
+          totalStudents: totalChildren,
+          attendedCount: attendedCount
         },
       };
     } catch (error) {

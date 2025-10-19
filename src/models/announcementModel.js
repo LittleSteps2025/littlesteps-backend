@@ -100,7 +100,17 @@ const announcementModel = {
 export const getAllAnnouncements = async () => {
   const result = await pool.query(
     `SELECT 
-       a.*,
+       a.ann_id,
+       a.title,
+       a.details,
+       TO_CHAR(a.date, 'YYYY-MM-DD') as date,
+       TO_CHAR(a.time, 'HH24:MI') as time,
+       a.attachment,
+       a.audience,
+       a.session_id,
+       a.user_id,
+       a.created_at,
+       a.status,
        u.name AS author_name, 
        u.email AS author_email,
        u.role AS author_role,
@@ -120,7 +130,17 @@ export const getAllAnnouncements = async () => {
 export const getAnnouncementById = async (ann_id) => {
   const result = await pool.query(
     `SELECT 
-       a.*,
+       a.ann_id,
+       a.title,
+       a.details,
+       TO_CHAR(a.date, 'YYYY-MM-DD') as date,
+       TO_CHAR(a.time, 'HH24:MI') as time,
+       a.attachment,
+       a.audience,
+       a.session_id,
+       a.user_id,
+       a.created_at,
+       a.status,
        u.name AS author_name, 
        u.email AS author_email,
        u.role AS author_role,
@@ -137,8 +157,9 @@ export const getAnnouncementById = async (ann_id) => {
   return result.rows[0];
 };
 
-// Valid audience values: 1=supervisor, 2=teacher, 3=parent, 4=supervisor & teacher, 5=teacher & parent
-const validAudiences = [1, 2, 3, 4, 5];
+// Valid audience values based on frontend mapping:
+// 1 = "All", 2 = "Teachers", 3 = "Parents"
+const validAudiences = [1, 2, 3];
 
 // Modified updateAnnouncement function to match database schema
 export const updateAnnouncement = async (
@@ -147,14 +168,26 @@ export const updateAnnouncement = async (
 ) => {
   if (!validAudiences.includes(audience)) {
     throw new Error(
-      "Invalid audience value. Must be 1=supervisor, 2=teacher, 3=parent, 4=supervisor & teacher, 5=teacher & parent"
+      "Invalid audience value. Must be 1 (All), 2 (Teachers), or 3 (Parents)"
     );
   }
 
   const result = await pool.query(
     `UPDATE announcement SET
      title = $1, details = $2, status = $3, audience = $4, time = $5, attachment = $6
-     WHERE ann_id = $7 RETURNING *`,
+     WHERE ann_id = $7 
+     RETURNING 
+       ann_id,
+       title,
+       details,
+       TO_CHAR(date, 'YYYY-MM-DD') as date,
+       TO_CHAR(time, 'HH24:MI') as time,
+       attachment,
+       audience,
+       session_id,
+       user_id,
+       created_at,
+       status`,
     [title, details, status, audience, time, attachment, ann_id]
   );
   return result.rows[0];
@@ -166,11 +199,22 @@ export const createAnnouncement = async (announcementData) => {
 
   if (!validAudiences.includes(audience)) {
     throw new Error(
-      "Invalid audience value. Must be 1=supervisor, 2=teacher, 3=parent, 4=supervisor & teacher, 5=teacher & parent"
+      "Invalid audience value. Must be 1 (All), 2 (Teachers), or 3 (Parents)"
     );
   }
 
-  return await announcementModel.create(announcementData);
+  const result = await announcementModel.create(announcementData);
+  
+  // Format date and time in response
+  return {
+    ...result,
+    date: result.date instanceof Date 
+      ? result.date.toISOString().split('T')[0] 
+      : result.date,
+    time: typeof result.time === 'string' 
+      ? result.time.slice(0, 5) 
+      : result.time
+  };
 };
 
 export default announcementModel;

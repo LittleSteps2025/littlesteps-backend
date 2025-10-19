@@ -8,7 +8,7 @@ export const create = async (req, res) => {
     console.log("Content-Type:", req.get("Content-Type")); // ✅ Add this
 
     // Your existing code below:
-    const { title, details, status, audience, date, time } = req.body;
+    const { title, details, status, audience, date, time, type, topic, venue, attachment } = req.body;
 
     // Validate required fields
     if (!title || !details || !audience) {
@@ -83,8 +83,8 @@ export const create = async (req, res) => {
       // Convert audience to number if it's a string
       const audienceNum = Number(audience);
 
-      // Accept null values for date and time
-      const announcementDate = date || null;
+      // Use provided date or default to today's date in YYYY-MM-DD format
+      const announcementDate = date || new Date().toISOString().split('T')[0];
       const announcementTime = time || null;
       const announcementAttachment = attachment || null;
 
@@ -104,13 +104,19 @@ export const create = async (req, res) => {
 
       const announcement = await AnnouncementModel.createAnnouncement(announcementData);
       
+      // Ensure date is returned in YYYY-MM-DD format
+      const responseData = {
+        ...announcement,
+        date: announcement.date instanceof Date 
+          ? announcement.date.toISOString().split('T')[0] 
+          : announcement.date,
+        type: 'announcement'
+      };
+      
       return res.status(201).json({
         status: 201,
         message: 'Announcement created successfully',
-        data: {
-          ...announcement,
-          type: 'announcement'
-        }
+        data: responseData
       });
     }
   } catch (error) {
@@ -128,13 +134,16 @@ export const create = async (req, res) => {
 // Get all announcements and events
 export const getAll = async (req, res) => {
   try {
-    // Import event model dynamically
-    const eventModule = await import('../models/eventModel.js');
-    const eventModel = eventModule.default;
+    console.log('=== Starting getAll announcements ===');
     
-    // Fetch both announcements and events
+    // Fetch announcements
     const announcements = await AnnouncementModel.getAllAnnouncements();
-    const events = await eventModel.getAll();
+    console.log(`Fetched ${announcements.length} announcements`);
+    
+    // Debug: Log first announcement to check audience value
+    if (announcements.length > 0) {
+      console.log('Sample announcement:', JSON.stringify(announcements[0], null, 2));
+    }
     
     // Map announcements with type field
     const mappedAnnouncements = announcements.map(ann => ({
@@ -143,7 +152,7 @@ export const getAll = async (req, res) => {
       details: ann.details,
       date: ann.date,
       time: ann.time,
-      audience: ann.audience,
+      audience: Number(ann.audience) || 1, // Ensure audience is a number, default to 1 (All)
       status: ann.status,
       type: 'announcement',
       created_at: ann.created_at,
@@ -154,31 +163,44 @@ export const getAll = async (req, res) => {
       published_by: ann.published_by
     }));
     
-    // Map events with type field (use event_id as ann_id for consistency)
-    const mappedEvents = events.map(evt => ({
-      ann_id: `event_${evt.event_id}`, // Prefix to avoid ID conflicts
-      event_id: evt.event_id,
-      title: evt.topic || evt.description?.substring(0, 50),
-      details: evt.description,
-      topic: evt.topic,
-      venue: evt.venue,
-      date: evt.date,
-      time: evt.time,
-      audience: 1, // Default to 'All' for events
-      status: 'published',
-      type: 'event',
-      created_at: evt.created_time,
-      updated_at: evt.created_time,
-      attachment: evt.image,
-      session_id: null,
-      user_id: evt.user_id,
-      published_by: null
-    }));
+    // Try to fetch events, but don't fail if event model has issues
+    let mappedEvents = [];
+    try {
+      const eventModule = await import('../models/eventModel.js');
+      const eventModel = eventModule.default;
+      const events = await eventModel.getAll();
+      console.log(`Fetched ${events.length} events`);
+      
+      // Map events with type field (use event_id as ann_id for consistency)
+      mappedEvents = events.map(evt => ({
+        ann_id: `event_${evt.event_id}`, // Prefix to avoid ID conflicts
+        event_id: evt.event_id,
+        title: evt.topic || evt.description?.substring(0, 50),
+        details: evt.description,
+        topic: evt.topic,
+        venue: evt.venue,
+        date: evt.date,
+        time: evt.time,
+        audience: 1, // Default to 'All' for events
+        status: 'published',
+        type: 'event',
+        created_at: evt.created_time,
+        updated_at: evt.created_time,
+        attachment: evt.image,
+        session_id: null,
+        user_id: evt.user_id,
+        published_by: null
+      }));
+    } catch (eventError) {
+      console.error('Error fetching events (continuing without them):', eventError.message);
+    }
     
     // Combine and sort by created_at
     const combined = [...mappedAnnouncements, ...mappedEvents].sort((a, b) => {
       return new Date(b.created_at) - new Date(a.created_at);
     });
+    
+    console.log(`Returning ${combined.length} total items`);
     
     res.status(200).json({
       status: 200,
@@ -187,6 +209,7 @@ export const getAll = async (req, res) => {
     });
   } catch (error) {
     console.error("Get all announcements error:", error);
+    console.error("Error stack:", error.stack);
     res.status(500).json({
       status: 500,
       message: 'Failed to fetch announcements and events',
