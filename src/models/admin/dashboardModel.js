@@ -116,15 +116,15 @@ export const getRecentActivities = async (limit = 10) => {
       (
         SELECT 
           c.complaint_id as activity_id,
-          c.parent_email as user_id,
-          u.name as user_name,
+          c.child_id::text as user_id,
+          ch.name as user_name,
           'submitted complaint' as activity_type,
           'complaint' as type,
-          c.created_at as timestamp,
-          c.complaint_type as description
+          c.date::timestamp as timestamp,
+          c.subject as description
         FROM complaints c
-        LEFT JOIN "user" u ON c.parent_email = u.email
-        WHERE c.created_at >= CURRENT_DATE - INTERVAL '7 days'
+        LEFT JOIN child ch ON c.child_id = ch.child_id
+        WHERE c.date >= CURRENT_DATE - INTERVAL '7 days'
       )
       UNION ALL
       (
