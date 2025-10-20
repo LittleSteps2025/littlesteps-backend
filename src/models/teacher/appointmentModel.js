@@ -51,6 +51,16 @@ const AppointmentModel = {
     const result = await pool.query(query, [response, appointmentId, userId]);
     return result.rowCount > 0;
   },
+  updateStatus: async (appointmentId, status) => {
+    const query = `
+      UPDATE meeting
+      SET status = $1
+      WHERE meeting_id = $2
+      RETURNING meeting_id
+    `;
+    const result = await pool.query(query, [status, appointmentId]);
+    return result.rowCount > 0;
+  },
 };
 
 export default AppointmentModel;

@@ -18,6 +18,7 @@ class AppointmentController {
       res.status(500).json({ error: err.message });
     }
   }
+  
 }
 
 export default new AppointmentController();

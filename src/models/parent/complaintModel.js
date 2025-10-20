@@ -1,4 +1,4 @@
-import pool from '../../config/db.js';
+import pool from "../../config/db.js";
 
 class ComplaintModel {
   static async create(data) {
@@ -8,8 +8,8 @@ class ComplaintModel {
       recipient,
       description,
       date,
-      status = 'Pending',
-      action
+      status = "Pending",
+      action,
     } = data;
 
     const query = `
@@ -31,9 +31,7 @@ class ComplaintModel {
         description,
         date,
         status,
-        action,
-        created_at,
-        updated_at`;
+        action`;
 
     try {
       const result = await pool.query(query, [
@@ -43,12 +41,12 @@ class ComplaintModel {
         description,
         date,
         status,
-        action
+        action,
       ]);
 
       return result.rows[0];
     } catch (error) {
-      console.error('Error creating complaint:', error);
+      console.error("Error creating complaint:", error);
       throw error;
     }
   }
@@ -75,11 +73,11 @@ class ComplaintModel {
         LEFT JOIN children ch ON c.child_id = ch.child_id
         LEFT JOIN users u ON c.recipient = u.user_id
         WHERE 1=1`;
-      
+
       const values = [];
       let paramCount = 1;
 
-      if (filters.status && filters.status !== 'all') {
+      if (filters.status && filters.status !== "all") {
         query += ` AND c.status = $${paramCount}`;
         values.push(filters.status);
         paramCount++;
@@ -103,12 +101,12 @@ class ComplaintModel {
         paramCount++;
       }
 
-      query += ' ORDER BY c.date DESC';
+      query += " ORDER BY c.date DESC";
 
       const result = await pool.query(query, values);
       return result.rows;
     } catch (error) {
-      console.error('Error finding complaints:', error);
+      console.error("Error finding complaints:", error);
       throw error;
     }
   }
@@ -139,14 +137,20 @@ class ComplaintModel {
       const result = await pool.query(query, [complaintId]);
       return result.rows[0];
     } catch (error) {
-      console.error('Error finding complaint:', error);
+      console.error("Error finding complaint:", error);
       throw error;
     }
   }
 
   static async update(complaintId, data) {
     try {
-      const allowedUpdates = ['subject', 'recipient', 'description', 'status', 'action'];
+      const allowedUpdates = [
+        "subject",
+        "recipient",
+        "description",
+        "status",
+        "action",
+      ];
       const updates = [];
       const values = [];
       let paramCount = 1;
@@ -164,7 +168,7 @@ class ComplaintModel {
       values.push(complaintId);
       const query = `
         UPDATE complaints 
-        SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP 
+        SET ${updates.join(", ")}, updated_at = CURRENT_TIMESTAMP 
         WHERE complaint_id = $${paramCount}
         RETURNING 
           complaint_id,
@@ -181,7 +185,7 @@ class ComplaintModel {
       const result = await pool.query(query, values);
       return result.rows[0];
     } catch (error) {
-      console.error('Error updating complaint:', error);
+      console.error("Error updating complaint:", error);
       throw error;
     }
   }
@@ -196,7 +200,7 @@ class ComplaintModel {
       const result = await pool.query(query, [complaintId]);
       return result.rows[0];
     } catch (error) {
-      console.error('Error deleting complaint:', error);
+      console.error("Error deleting complaint:", error);
       throw error;
     }
   }
@@ -213,7 +217,7 @@ class ComplaintModel {
       const result = await pool.query(query);
       return result.rows;
     } catch (error) {
-      console.error('Error getting complaint stats:', error);
+      console.error("Error getting complaint stats:", error);
       throw error;
     }
   }
