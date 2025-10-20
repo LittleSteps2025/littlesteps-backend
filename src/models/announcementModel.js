@@ -1,41 +1,114 @@
-import pool from '../config/db.js';
+import pool from "../config/db.js";
 
-// audience: 1=supervisor, 2=teacher, 3=parent, 4=supervisor & teacher, 5=teacher & parent
-const validAudiences = [1, 2, 3, 4, 5];
+const announcementModel = {
+  // Get all announcements
+  async getAll() {
+    const query = "SELECT * FROM announcement ORDER BY created_at DESC";
+    const { rows } = await pool.query(query);
+    // Normalize date field to YYYY-MM-DD string to avoid timezone conversion issues
+    const normalized = rows.map((r) => ({
+      ...r,
+      date: r.date instanceof Date ? r.date.toISOString().split('T')[0] : String(r.date),
+    }));
+    return normalized;
+  },
 
-// Modified createAnnouncement function to match database schema
-export const createAnnouncement = async ({
-  title,
-  details,
-  status = 'draft',
-  audience,
-  user_id,
-  session_id = null,
-  date = null,
-  time = null,
-  attachment = null
-}) => {
-  if (!validAudiences.includes(audience)) {
-    throw new Error('Invalid audience value. Must be 1=supervisor, 2=teacher, 3=parent, 4=supervisor & teacher, 5=teacher & parent');
-  }
+  // Get single announcement by ID
+  async getById(id) {
+    const query = "SELECT * FROM announcement WHERE ann_id = $1";
+    const { rows } = await pool.query(query, [id]);
+    const row = rows[0];
+    if (!row) return row;
+    return {
+      ...row,
+      date: row.date instanceof Date ? row.date.toISOString().split('T')[0] : String(row.date),
+    };
+  },
 
-  // Use provided date or current date
-  const announcementDate = date || new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+  // Create new announcement
+  async create({
+    title,
+    date,
+    time,
+    details,
+    attachment,
+    audience,
+    session_id,
+    user_id,
+  }) {
+    const query = `
+      INSERT INTO announcement 
+        (title, date, time, details, attachment, audience, session_id, user_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `;
+    const values = [
+      title,
+      date,
+      time,
+      details,
+      attachment,
+      audience,
+      session_id,
+      user_id,
+    ];
+    const { rows } = await pool.query(query, values);
+    return rows[0];
+  },
 
-  const result = await pool.query(
-    `INSERT INTO announcement 
-     (title, details, status, audience, user_id, session_id, date, time, attachment, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
-     RETURNING *`,
-    [title, details, status, audience, user_id, session_id, announcementDate, time, attachment]
-  );
-  return result.rows[0];
+  // Update announcement
+  async update(
+    id,
+    { title, date, time, details, attachment, audience, session_id }
+  ) {
+    const query = `
+      UPDATE announcement
+      SET 
+        title = $1,
+        date = $2,
+        time = $3,
+        details = $4,
+        attachment = $5,
+        audience = $6,
+        session_id = $7
+      WHERE ann_id = $8
+      RETURNING *
+    `;
+    const values = [
+      title,
+      date,
+      time,
+      details,
+      attachment,
+      audience,
+      session_id,
+      id,
+    ];
+    const { rows } = await pool.query(query, values);
+    return rows[0];
+  },
+
+  // Delete announcement
+  async delete(id) {
+    const query = "DELETE FROM announcement WHERE ann_id = $1 RETURNING *";
+    const { rows } = await pool.query(query, [id]);
+    return rows[0];
+  },
 };
 
-// Get all announcements (with author info)
+// Get all announcements (with author info and published_by object)
 export const getAllAnnouncements = async () => {
   const result = await pool.query(
-    `SELECT a.*, u.name AS author_name, u.email AS author_email
+    `SELECT 
+       a.*,
+       u.name AS author_name, 
+       u.email AS author_email,
+       u.role AS author_role,
+       jsonb_build_object(
+         'id', u.user_id,
+         'name', u.name,
+         'role', u.role
+       ) as published_by
      FROM announcement a
      LEFT JOIN "user" u ON a.user_id = u.user_id
      ORDER BY a.created_at DESC`
@@ -46,7 +119,16 @@ export const getAllAnnouncements = async () => {
 // Get a single announcement by ID
 export const getAnnouncementById = async (ann_id) => {
   const result = await pool.query(
-    `SELECT a.*, u.name AS author_name, u.email AS author_email
+    `SELECT 
+       a.*,
+       u.name AS author_name, 
+       u.email AS author_email,
+       u.role AS author_role,
+       jsonb_build_object(
+         'id', u.user_id,
+         'name', u.name,
+         'role', u.role
+       ) as published_by
      FROM announcement a
      LEFT JOIN "user" u ON a.user_id = u.user_id
      WHERE a.ann_id = $1`,
@@ -55,17 +137,18 @@ export const getAnnouncementById = async (ann_id) => {
   return result.rows[0];
 };
 
+// Valid audience values: 1=supervisor, 2=teacher, 3=parent, 4=supervisor & teacher, 5=teacher & parent
+const validAudiences = [1, 2, 3, 4, 5];
+
 // Modified updateAnnouncement function to match database schema
-export const updateAnnouncement = async (ann_id, {
-  title,
-  details,
-  status,
-  audience,
-  time = null,
-  attachment = null
-}) => {
+export const updateAnnouncement = async (
+  ann_id,
+  { title, details, status, audience, time = null, attachment = null }
+) => {
   if (!validAudiences.includes(audience)) {
-    throw new Error('Invalid audience value. Must be 1=supervisor, 2=teacher, 3=parent, 4=supervisor & teacher, 5=teacher & parent');
+    throw new Error(
+      "Invalid audience value. Must be 1=supervisor, 2=teacher, 3=parent, 4=supervisor & teacher, 5=teacher & parent"
+    );
   }
 
   const result = await pool.query(
@@ -77,11 +160,17 @@ export const updateAnnouncement = async (ann_id, {
   return result.rows[0];
 };
 
-// Delete an announcement by ID
-export const deleteAnnouncement = async (ann_id) => {
-  const result = await pool.query(
-    `DELETE FROM announcement WHERE ann_id = $1 RETURNING *`,
-    [ann_id]
-  );
-  return result.rows[0];
+// Create a new announcement
+export const createAnnouncement = async (announcementData) => {
+  const { audience } = announcementData;
+
+  if (!validAudiences.includes(audience)) {
+    throw new Error(
+      "Invalid audience value. Must be 1=supervisor, 2=teacher, 3=parent, 4=supervisor & teacher, 5=teacher & parent"
+    );
+  }
+
+  return await announcementModel.create(announcementData);
 };
+
+export default announcementModel;

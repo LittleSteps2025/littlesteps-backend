@@ -185,3 +185,33 @@ export const submitReport = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
+
+
+export const getChildSensitiveData = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await ChildModel.getSensitiveData(id);
+
+    if (!data) {
+      return res.status(404).json({ message: "No sensitive data found" });
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error("❌ Error fetching sensitive data:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+
+
+
+
+
+
+
+
