@@ -54,3 +54,36 @@ export const respondToAppointment = async (req, res, next) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// Update appointment status
+export const updateAppointmentStatus = async (req, res, next) => {
+  try {
+    const appointmentId = req.params.id;
+    const { status } = req.body;
+    const currentUser = req.user;
+
+    if (!currentUser) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    if (!status || status.trim() === '') {
+      return res.status(400).json({ message: 'Status cannot be empty.' });
+    }
+
+    const userId = currentUser.userId;
+    const updated = await AppointmentModel.updateStatus(
+      appointmentId,
+    
+      status.trim()
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: 'Appointment not found or you do not have permission to update it.' });
+    }
+
+    res.status(200).json({ message: 'Status updated successfully!' });
+  } catch (error) {
+    console.error('Error updating appointment status:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

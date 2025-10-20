@@ -10,6 +10,7 @@ const AppointmentModel = {
         m.meeting_time AS meetingTime,
         m.reason,
         m.response,
+        m.status,
         c.child_id,
         c.name AS childName,
         g.name,
@@ -49,6 +50,18 @@ const AppointmentModel = {
       RETURNING m.meeting_id
     `;
     const result = await pool.query(query, [response, appointmentId, userId]);
+    return result.rowCount > 0;
+  },
+
+  // Update status by appointment ID
+  updateStatus: async (appointmentId, status) => {
+    const query = `
+      UPDATE meeting
+      SET status = $1
+      WHERE meeting_id = $2
+      RETURNING meeting_id
+    `;
+    const result = await pool.query(query, [status, appointmentId]);
     return result.rowCount > 0;
   },
 };
