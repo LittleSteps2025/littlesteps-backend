@@ -28,7 +28,7 @@ const AppointmentModel = {
         AND m.recipient = 'teacher'
       ORDER BY m.meeting_date DESC, m.meeting_time DESC
     `;
-    
+
     const result = await pool.query(query, [userId]);
     return result.rows;
   },
