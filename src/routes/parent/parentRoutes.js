@@ -21,6 +21,6 @@ router.get(
 router.get("/announcements/meeting/child/:childId", getMeetingsByChild);
 
 // Protected routes middleware
-router.use(parentController.verifyParentToken);
+// router.use(parentController.verifyParentToken);
 
 export default router;

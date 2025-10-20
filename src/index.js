@@ -60,6 +60,7 @@ import adminAttendanceRoutes from "./routes/admin/attendanceRoutes.js";
 
 // import adminAttendanceRoutes from './routes/admin/attendanceRoutes.js';
 import subscriptionRoutes from "./routes/subscriptionRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 dotenv.config();
 
@@ -88,8 +89,8 @@ app.use("/api/announcements", announcemnents);
 // Core Routes
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/meetings", meetingRoutes);
-app.use("/api/complaints", complaintRoutes);
+app.use("/api/notifications", notificationRoutes);
+
 // Teacher Routes
 app.use("/api/teacher", teacherRoutes);
 app.use("/api/teacher/reports", reportRoutes);
@@ -97,6 +98,7 @@ app.use("/api/teacher/guardians", guardianRoutes);
 app.use("/api/teacher/children", teacherChildRoutes);
 app.use("/api/teacher/events", eventRoutesTeacher);
 app.use("/api/teacher/appointments", appointmentsRoutes);
+app.use("/api/teachers/child", childTeacherRoutes);
 
 // Parent Routes
 app.use("/api/parent", parentRoutes);
@@ -107,6 +109,7 @@ app.use("/api/parent/reports", viewReportRoutes);
 app.use("/api/parent/health", healthRecordRoutes);
 app.use("/api/parent/meetings", meetingParentRoutes);
 app.use("/api/parent/complaints", complaintParentRoutes);
+app.use("/api/parent/guardians", guardiansRoutes);
 
 // Supervisor Routes
 app.use("/api/supervisor", supervisorRoutes);
@@ -136,6 +139,9 @@ app.use("/api/admin/attendance", adminAttendanceRoutes);
 // Admin Complaints Routes
 app.use("/api/admin/complaints", complaintRoutes);
 
+app.use("/api/meetings", meetingRoutes);
+app.use("/api/complaints", complaintRoutes);
+
 // Subscription Routes
 console.log("Mounting subscription routes...");
 app.use(
@@ -162,6 +168,9 @@ app.use("/api/admin/payments", adminPaymentRoutes);
 // Payment & Subscription Routes
 app.use("/api/payments", paymentRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use('/api/teacherprofile', profileRoutes);
+app.use("/api/appointments",appointmentsRoutes)
 
 // Error handling middleware
 app.use(errorHandler);
@@ -186,7 +195,8 @@ app.get("/", async (req, res) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`💻 Health check: http://localhost:${PORT}`);
+  console.log(`🌐 Network access: http://0.0.0.0:${PORT}`);
 });
