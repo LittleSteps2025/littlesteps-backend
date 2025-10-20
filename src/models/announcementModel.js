@@ -217,4 +217,9 @@ export const createAnnouncement = async (announcementData) => {
   };
 };
 
+// Delete announcement
+export const deleteAnnouncement = async (ann_id) => {
+  return await announcementModel.delete(ann_id);
+};
+
 export default announcementModel;

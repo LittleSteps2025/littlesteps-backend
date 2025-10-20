@@ -152,7 +152,7 @@ export const getAll = async (req, res) => {
       details: ann.details,
       date: ann.date,
       time: ann.time,
-      audience: Number(ann.audience) || 1, // Ensure audience is a number, default to 1 (All)
+      audience: parseInt(ann.audience, 10), // Convert to integer (1, 2, or 3)
       status: ann.status,
       type: 'announcement',
       created_at: ann.created_at,

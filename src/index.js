@@ -27,7 +27,7 @@ import viewReportRoutes from "./routes/parent/viewReportRoutes.js";
 import healthRecordRoutes from "./routes/parent/healthRecordRoutes.js";
 import childRoutes from "./routes/child/childRoutes.js"; // Child routes
 import eventRoutes from "./routes/eventRoutes.js";
-import announcementRoutes from "./routes/announcementRoutes.js";
+import announcementRoutes from "./routes/announcementsRoute.js";
 import meetingRoutes from "./routes/meetingRoutes.js"; // ✅ Meeting routes
 import guardianRoutes from "./routes/teacher/guardianRoutes.js"; // ✅ Guardian routes
 import complaintRoutes from "./routes/complaintRoutes.js"; // ✅ Complaint routes
