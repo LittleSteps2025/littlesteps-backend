@@ -2,9 +2,7 @@ import pool from "../../config/db.js";
 
 // Get total number of children
 export const getTotalChildren = async () => {
-  const result = await pool.query(
-    'SELECT COUNT(*) as count FROM child'
-  );
+  const result = await pool.query("SELECT COUNT(*) as count FROM child");
   return parseInt(result.rows[0].count) || 0;
 };
 
@@ -49,7 +47,7 @@ export const getTodayCheckIns = async () => {
     return parseInt(result.rows[0].count) || 0;
   } catch (error) {
     // If report table doesn't exist or error occurs, return 0
-    console.log('Report table not found or error occurred:', error.message);
+    console.log("Report table not found or error occurred:", error.message);
     return 0;
   }
 };
@@ -57,11 +55,11 @@ export const getTodayCheckIns = async () => {
 // Get monthly revenue from payments
 export const getMonthlyRevenue = async () => {
   const result = await pool.query(
-    `SELECT COALESCE(SUM(amount), 0) as total 
-     FROM payments 
+    `SELECT COALESCE(SUM(amount), 0) as total
+     FROM payments
      WHERE EXTRACT(MONTH FROM created_at) = EXTRACT(MONTH FROM CURRENT_DATE)
      AND EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM CURRENT_DATE)
-     AND (status = 'completed' OR paid_at IS NOT NULL)`
+     AND (status IN ('completed', 'pending') OR paid_at IS NOT NULL)`
   );
   return parseFloat(result.rows[0].total) || 0;
 };
@@ -74,7 +72,7 @@ export const getDashboardStats = async () => {
     activeTeachers: await getActiveTeachers(),
     activeSupervisors: await getActiveSupervisors(),
     todayCheckIns: await getTodayCheckIns(),
-    monthlyRevenue: await getMonthlyRevenue()
+    monthlyRevenue: await getMonthlyRevenue(),
   };
   return stats;
 };
@@ -160,20 +158,20 @@ export const getRecentActivities = async (limit = 10) => {
       [limit]
     );
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       id: row.activity_id,
       activity_id: row.activity_id,
       user_id: row.user_id,
-      user: row.user_name || 'Unknown User',
-      user_name: row.user_name || 'Unknown User',
+      user: row.user_name || "Unknown User",
+      user_name: row.user_name || "Unknown User",
       action: row.activity_type,
       activity_type: row.activity_type,
       type: row.type,
       timestamp: row.timestamp,
-      description: row.description
+      description: row.description,
     }));
   } catch (error) {
-    console.error('Error fetching recent activities:', error);
+    console.error("Error fetching recent activities:", error);
     // Return mock data if query fails
     return [];
   }

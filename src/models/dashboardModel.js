@@ -1,4 +1,4 @@
-import pool from '../config/db.js';
+import pool from "../config/db.js";
 
 class DashboardModel {
   /**
@@ -6,12 +6,12 @@ class DashboardModel {
    */
   async getTotalChildren() {
     try {
-      const query = 'SELECT COUNT(*) as count FROM child';
+      const query = "SELECT COUNT(*) as count FROM child";
       const { rows } = await pool.query(query);
-      console.log('📊 Total children query result:', rows[0]);
+      console.log("📊 Total children query result:", rows[0]);
       return parseInt(rows[0].count) || 0;
     } catch (error) {
-      console.error('❌ Error in getTotalChildren:', error);
+      console.error("❌ Error in getTotalChildren:", error);
       return 0;
     }
   }
@@ -21,12 +21,12 @@ class DashboardModel {
    */
   async getActiveParents() {
     try {
-      const query = 'SELECT COUNT(*) as count FROM parent';
+      const query = "SELECT COUNT(*) as count FROM parent";
       const { rows } = await pool.query(query);
-      console.log('📊 Active parents query result:', rows[0]);
+      console.log("📊 Active parents query result:", rows[0]);
       return parseInt(rows[0].count) || 0;
     } catch (error) {
-      console.error('❌ Error in getActiveParents:', error);
+      console.error("❌ Error in getActiveParents:", error);
       return 0;
     }
   }
@@ -41,10 +41,10 @@ class DashboardModel {
         FROM teacher
       `;
       const { rows } = await pool.query(query);
-      console.log('📊 Active teachers query result:', rows[0]);
+      console.log("📊 Active teachers query result:", rows[0]);
       return parseInt(rows[0].count) || 0;
     } catch (error) {
-      console.error('❌ Error in getActiveTeachers:', error);
+      console.error("❌ Error in getActiveTeachers:", error);
       return 0;
     }
   }
@@ -61,10 +61,10 @@ class DashboardModel {
         WHERE u.role = 'supervisor' AND u.status = 'active'
       `;
       const { rows } = await pool.query(query);
-      console.log('📊 Active supervisors query result:', rows[0]);
+      console.log("📊 Active supervisors query result:", rows[0]);
       return parseInt(rows[0].count) || 0;
     } catch (error) {
-      console.error('❌ Error in getActiveSupervisors:', error);
+      console.error("❌ Error in getActiveSupervisors:", error);
       return 0;
     }
   }
@@ -90,10 +90,13 @@ class DashboardModel {
         LIMIT $1
       `;
       const { rows } = await pool.query(query, [limit]);
-      console.log(`📊 Upcoming events query result (${rows.length} events):`, rows);
+      console.log(
+        `📊 Upcoming events query result (${rows.length} events):`,
+        rows
+      );
       return rows;
     } catch (error) {
-      console.error('❌ Error in getUpcomingEvents:', error);
+      console.error("❌ Error in getUpcomingEvents:", error);
       return [];
     }
   }
@@ -103,12 +106,13 @@ class DashboardModel {
    */
   async getTotalEvents() {
     try {
-      const query = 'SELECT COUNT(*) as count FROM event WHERE date >= CURRENT_DATE';
+      const query =
+        "SELECT COUNT(*) as count FROM event WHERE date >= CURRENT_DATE";
       const { rows } = await pool.query(query);
-      console.log('📊 Total upcoming events query result:', rows[0]);
+      console.log("📊 Total upcoming events query result:", rows[0]);
       return parseInt(rows[0].count) || 0;
     } catch (error) {
-      console.error('❌ Error in getTotalEvents:', error);
+      console.error("❌ Error in getTotalEvents:", error);
       return 0;
     }
   }
@@ -125,10 +129,10 @@ class DashboardModel {
         AND LOWER(TRIM(recipient)) = 'supervisor'
       `;
       const { rows } = await pool.query(query);
-      console.log('📊 Pending supervisor complaints query result:', rows[0]);
+      console.log("📊 Pending supervisor complaints query result:", rows[0]);
       return parseInt(rows[0].count) || 0;
     } catch (error) {
-      console.error('❌ Error in getPendingComplaints:', error);
+      console.error("❌ Error in getPendingComplaints:", error);
       return 0;
     }
   }
@@ -144,10 +148,10 @@ class DashboardModel {
         WHERE LOWER(TRIM(recipient)) = 'supervisor'
       `;
       const { rows } = await pool.query(query);
-      console.log('📊 Total supervisor complaints query result:', rows[0]);
+      console.log("📊 Total supervisor complaints query result:", rows[0]);
       return parseInt(rows[0].count) || 0;
     } catch (error) {
-      console.error('❌ Error in getTotalComplaints:', error);
+      console.error("❌ Error in getTotalComplaints:", error);
       return 0;
     }
   }
@@ -171,12 +175,12 @@ class DashboardModel {
         GROUP BY date_series, day_num
         ORDER BY day_num
       `;
-      
+
       const { rows } = await pool.query(query);
-      console.log('📊 Weekly attendance data:', rows);
+      console.log("📊 Weekly attendance data:", rows);
       return rows;
     } catch (error) {
-      console.error('❌ Error in getWeeklyAttendanceData:', error);
+      console.error("❌ Error in getWeeklyAttendanceData:", error);
       return [];
     }
   }
@@ -200,12 +204,12 @@ class DashboardModel {
         GROUP BY date_series, day_num
         ORDER BY date_series
       `;
-      
+
       const { rows } = await pool.query(query);
-      console.log('📊 Monthly attendance data:', rows);
+      console.log("📊 Monthly attendance data:", rows);
       return rows;
     } catch (error) {
-      console.error('❌ Error in getMonthlyAttendanceData:', error);
+      console.error("❌ Error in getMonthlyAttendanceData:", error);
       return [];
     }
   }
@@ -232,12 +236,12 @@ class DashboardModel {
         GROUP BY date_series, day_num
         ORDER BY day_num
       `;
-      
+
       const { rows } = await pool.query(query);
-      console.log('📊 Weekly complaints data:', rows);
+      console.log("📊 Weekly complaints data:", rows);
       return rows;
     } catch (error) {
-      console.error('❌ Error in getWeeklyComplaintsData:', error);
+      console.error("❌ Error in getWeeklyComplaintsData:", error);
       return [];
     }
   }
@@ -264,12 +268,12 @@ class DashboardModel {
         GROUP BY date_series, day_num
         ORDER BY date_series
       `;
-      
+
       const { rows } = await pool.query(query);
-      console.log('📊 Monthly complaints data:', rows);
+      console.log("📊 Monthly complaints data:", rows);
       return rows;
     } catch (error) {
-      console.error('❌ Error in getMonthlyComplaintsData:', error);
+      console.error("❌ Error in getMonthlyComplaintsData:", error);
       return [];
     }
   }
@@ -285,65 +289,90 @@ class DashboardModel {
         WHERE DATE(arrived_time) = CURRENT_DATE
       `;
       const { rows } = await pool.query(query);
-      console.log('📊 Today attendance query result:', rows[0]);
+      console.log("📊 Today attendance query result:", rows[0]);
       return parseInt(rows[0].count) || 0;
     } catch (error) {
-      console.error('❌ Error in getTodayAttendance:', error);
+      console.error("❌ Error in getTodayAttendance:", error);
       return 0;
     }
   }
 
   /**
-   * Get revenue for a specific period
+   * Get actual revenue from payments table for a specific period
    */
-  async getRevenue(period = 'month', feePerChild = 5500) {
+  async getRevenue(period = "month") {
     try {
-      let dateFilter = '';
-      
+      let dateFilter = "";
+
       switch (period) {
-        case 'today':
-          dateFilter = "DATE(c.created_at) = CURRENT_DATE";
+        case "today":
+          // Use UTC date to avoid timezone issues
+          dateFilter =
+            "p.created_at >= DATE_TRUNC('day', NOW() AT TIME ZONE 'UTC') AND p.created_at < DATE_TRUNC('day', NOW() AT TIME ZONE 'UTC') + INTERVAL '1 day'";
           break;
-        case 'week':
-          dateFilter = "c.created_at >= DATE_TRUNC('week', CURRENT_DATE)";
+        case "week":
+          dateFilter =
+            "p.created_at >= DATE_TRUNC('week', NOW() AT TIME ZONE 'UTC')";
           break;
-        case 'month':
-          dateFilter = "c.created_at >= DATE_TRUNC('month', CURRENT_DATE)";
+        case "month":
+          dateFilter =
+            "p.created_at >= DATE_TRUNC('month', NOW() AT TIME ZONE 'UTC')";
           break;
         default:
-          dateFilter = "c.created_at >= DATE_TRUNC('month', CURRENT_DATE)";
+          dateFilter =
+            "p.created_at >= DATE_TRUNC('month', NOW() AT TIME ZONE 'UTC')";
       }
-      
+
       const query = `
-        SELECT COUNT(DISTINCT c.child_id) as count
-        FROM child c
+        SELECT
+          COALESCE(SUM(CAST(p.amount AS NUMERIC)), 0) as total_revenue,
+          COUNT(*) as payment_count
+        FROM payments p
         WHERE ${dateFilter}
       `;
-      
+
       const { rows } = await pool.query(query);
-      const childCount = parseInt(rows[0].count) || 0;
-      const revenue = childCount * feePerChild;
-      
-      console.log(`📊 Revenue for ${period}: ${childCount} children × Rs.${feePerChild} = Rs.${revenue}`);
-      return revenue;
+      const totalRevenue =
+        rows.length > 0 ? parseFloat(rows[0].total_revenue) || 0 : 0;
+      const paymentCount =
+        rows.length > 0 ? parseInt(rows[0].payment_count) || 0 : 0;
+      const currency = "LKR"; // Assuming all payments are in LKR for now
+
+      console.log(
+        `📊 Actual Revenue for ${period}: ${paymentCount} payments = ${currency} ${totalRevenue}`
+      );
+      return totalRevenue;
     } catch (error) {
-      console.error('❌ Error in getRevenue:', error);
+      console.error("❌ Error in getRevenue:", error);
       return 0;
     }
   }
-
   /**
-   * Get monthly revenue calculation
-   * Based on active parents * subscription fee
+   * Get monthly revenue from payments table
+   * Returns actual completed payment amounts
    */
-  async getMonthlyRevenue(feePerParent = 5500) {
+  async getMonthlyRevenue() {
     try {
-      const activeParents = await this.getActiveParents();
-      const revenue = activeParents * feePerParent;
-      console.log(`📊 Monthly revenue: ${activeParents} parents × Rs.${feePerParent} = Rs.${revenue}`);
-      return revenue;
+      const query = `
+        SELECT
+          COALESCE(SUM(CAST(p.amount AS NUMERIC)), 0) as total_revenue,
+          COUNT(*) as payment_count
+        FROM payments p
+        WHERE p.created_at >= DATE_TRUNC('month', NOW() AT TIME ZONE 'UTC')
+      `;
+      const { rows } = await pool.query(query);
+      const monthlyRevenue =
+        rows.length > 0 ? parseFloat(rows[0].total_revenue) || 0 : 0;
+      const paymentCount =
+        rows.length > 0 ? parseInt(rows[0].payment_count) || 0 : 0;
+      const currency = "LKR"; // Assuming all payments are in LKR for now
+
+      console.log(
+        `📊 Monthly revenue: ${paymentCount} payments = ${currency} ${monthlyRevenue}`
+      );
+      return monthlyRevenue;
     } catch (error) {
-      console.error('❌ Error in getMonthlyRevenue:', error);
+      console.error("❌ Error in getMonthlyRevenue:", error);
       return 0;
     }
   }
@@ -367,10 +396,10 @@ class DashboardModel {
         ORDER BY age_group
       `;
       const { rows } = await pool.query(query);
-      console.log('📊 Children by age group query result:', rows);
+      console.log("📊 Children by age group query result:", rows);
       return rows;
     } catch (error) {
-      console.error('❌ Error in getChildrenByAgeGroup:', error);
+      console.error("❌ Error in getChildrenByAgeGroup:", error);
       return [];
     }
   }
@@ -391,10 +420,10 @@ class DashboardModel {
         ORDER BY g.name
       `;
       const { rows } = await pool.query(query);
-      console.log('📊 Children by group query result:', rows);
+      console.log("📊 Children by group query result:", rows);
       return rows;
     } catch (error) {
-      console.error('❌ Error in getChildrenByGroup:', error);
+      console.error("❌ Error in getChildrenByGroup:", error);
       return [];
     }
   }
@@ -404,8 +433,8 @@ class DashboardModel {
    */
   async getAllDashboardStats() {
     try {
-      console.log('🔄 Starting to fetch all dashboard statistics...');
-      
+      console.log("🔄 Starting to fetch all dashboard statistics...");
+
       const [
         totalChildren,
         activeParents,
@@ -418,7 +447,7 @@ class DashboardModel {
         totalComplaints,
         upcomingEvents,
         childrenByAgeGroup,
-        childrenByGroup
+        childrenByGroup,
       ] = await Promise.all([
         this.getTotalChildren(),
         this.getActiveParents(),
@@ -431,7 +460,7 @@ class DashboardModel {
         this.getTotalComplaints(),
         this.getUpcomingEvents(),
         this.getChildrenByAgeGroup(),
-        this.getChildrenByGroup()
+        this.getChildrenByGroup(),
       ]);
 
       const result = {
@@ -444,21 +473,21 @@ class DashboardModel {
           monthlyRevenue,
           upcomingEvents: upcomingEventsCount,
           pendingComplaints,
-          totalComplaints
+          totalComplaints,
         },
         events: upcomingEvents,
         demographics: {
           byAgeGroup: childrenByAgeGroup,
-          byGroup: childrenByGroup
-        }
+          byGroup: childrenByGroup,
+        },
       };
 
-      console.log('✅ All dashboard stats fetched successfully!');
-      console.log('📊 Overview:', result.overview);
-      
+      console.log("✅ All dashboard stats fetched successfully!");
+      console.log("📊 Overview:", result.overview);
+
       return result;
     } catch (error) {
-      console.error('❌ Error in getAllDashboardStats:', error);
+      console.error("❌ Error in getAllDashboardStats:", error);
       throw error;
     }
   }
@@ -466,35 +495,37 @@ class DashboardModel {
   /**
    * Get stats for a specific period (today, week, month)
    */
-  async getStatsByPeriod(period = 'today') {
+  async getStatsByPeriod(period = "today") {
     try {
       console.log(`🔄 Fetching stats for period: ${period}`);
-      
-      let dateFilter = '';
-      let checkInDateFilter = '';
-      
+
+      let dateFilter = "";
+      let checkInDateFilter = "";
+
       switch (period) {
-        case 'today':
+        case "today":
           dateFilter = "DATE(c.created_at) = CURRENT_DATE";
           checkInDateFilter = "DATE(r.arrived_time) = CURRENT_DATE";
           break;
-        case 'week':
+        case "week":
           dateFilter = "c.created_at >= DATE_TRUNC('week', CURRENT_DATE)";
-          checkInDateFilter = "r.arrived_time >= DATE_TRUNC('week', CURRENT_DATE)";
+          checkInDateFilter =
+            "r.arrived_time >= DATE_TRUNC('week', CURRENT_DATE)";
           break;
-        case 'month':
+        case "month":
           dateFilter = "c.created_at >= DATE_TRUNC('month', CURRENT_DATE)";
-          checkInDateFilter = "r.arrived_time >= DATE_TRUNC('month', CURRENT_DATE)";
+          checkInDateFilter =
+            "r.arrived_time >= DATE_TRUNC('month', CURRENT_DATE)";
           break;
         default:
           dateFilter = "DATE(c.created_at) = CURRENT_DATE";
           checkInDateFilter = "DATE(r.arrived_time) = CURRENT_DATE";
       }
-      
+
       // Total children for period
       const childrenQuery = `SELECT COUNT(*) as count FROM child c WHERE ${dateFilter}`;
       const { rows: childrenRows } = await pool.query(childrenQuery);
-      
+
       // Check-ins for period
       const checkInsQuery = `
         SELECT COUNT(DISTINCT child_id) as count 
@@ -502,80 +533,80 @@ class DashboardModel {
         WHERE ${checkInDateFilter}
       `;
       const { rows: checkInsRows } = await pool.query(checkInsQuery);
-      
+
       // Revenue for period
       const revenue = await this.getRevenue(period);
-      
+
       return {
         totalChildren: parseInt(childrenRows[0].count) || 0,
         checkIns: parseInt(checkInsRows[0].count) || 0,
-        revenue
+        revenue,
       };
     } catch (error) {
       console.error(`❌ Error in getStatsByPeriod(${period}):`, error);
       return {
         totalChildren: 0,
         checkIns: 0,
-        revenue: 0
+        revenue: 0,
       };
     }
   }
 
   /**
-   * Get weekly revenue data for graph (7 days)
+   * Get weekly revenue data from payments table for graph (7 days)
    */
-  async getWeeklyRevenueData(feePerChild = 5500) {
+  async getWeeklyRevenueData() {
     try {
       const query = `
-        SELECT 
+        SELECT
           TO_CHAR(date_series, 'Day') as day_name,
           EXTRACT(DOW FROM date_series) as day_num,
-          COUNT(DISTINCT c.child_id) as child_count,
-          COUNT(DISTINCT c.child_id) * $1 as revenue
+          COALESCE(SUM(CAST(p.amount AS NUMERIC)), 0) as revenue,
+          COUNT(CASE WHEN p.id IS NOT NULL THEN 1 END) as payment_count
         FROM generate_series(
-          DATE_TRUNC('week', CURRENT_DATE),
-          DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '6 days',
+          DATE_TRUNC('week', CURRENT_DATE)::date,
+          (DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '6 days')::date,
           INTERVAL '1 day'
         ) as date_series
-        LEFT JOIN child c ON DATE(c.created_at) = DATE(date_series)
+        LEFT JOIN payments p ON DATE(p.created_at) = date_series
         GROUP BY date_series, day_num
         ORDER BY day_num
       `;
-      
-      const { rows } = await pool.query(query, [feePerChild]);
-      console.log('📊 Weekly revenue data:', rows);
+
+      const { rows } = await pool.query(query);
+      console.log("💳 Weekly revenue data from payments:", rows);
       return rows;
     } catch (error) {
-      console.error('❌ Error in getWeeklyRevenueData:', error);
+      console.error("❌ Error in getWeeklyRevenueData:", error);
       return [];
     }
   }
 
   /**
-   * Get monthly revenue data for graph (last 30 days)
+   * Get monthly revenue data from payments table for graph (last 30 days)
    */
-  async getMonthlyRevenueData(feePerChild = 5500) {
+  async getMonthlyRevenueData() {
     try {
       const query = `
-        SELECT 
+        SELECT
           TO_CHAR(date_series, 'Mon DD') as date_label,
-          COUNT(DISTINCT c.child_id) as child_count,
-          COUNT(DISTINCT c.child_id) * $1 as revenue
+          COALESCE(SUM(CAST(p.amount AS NUMERIC)), 0) as revenue,
+          COUNT(CASE WHEN p.id IS NOT NULL THEN 1 END) as payment_count
         FROM generate_series(
-          DATE_TRUNC('month', CURRENT_DATE),
-          CURRENT_DATE,
+          DATE_TRUNC('month', CURRENT_DATE)::date,
+          CURRENT_DATE::date,
           INTERVAL '1 day'
         ) as date_series
-        LEFT JOIN child c ON DATE(c.created_at) = DATE(date_series)
+        LEFT JOIN payments p ON DATE(p.created_at) = date_series
         GROUP BY date_series
         ORDER BY date_series
       `;
-      
-      const { rows } = await pool.query(query, [feePerChild]);
-      console.log('📊 Monthly revenue data:', rows);
+
+      const { rows } = await pool.query(query);
+      console.log("💳 Monthly revenue data from payments:", rows);
       return rows;
     } catch (error) {
-      console.error('❌ Error in getMonthlyRevenueData:', error);
+      console.error("❌ Error in getMonthlyRevenueData:", error);
       return [];
     }
   }
@@ -599,12 +630,12 @@ class DashboardModel {
         GROUP BY date_series, day_num
         ORDER BY day_num
       `;
-      
+
       const { rows } = await pool.query(query);
-      console.log('📊 Weekly attendance data:', rows);
+      console.log("📊 Weekly attendance data:", rows);
       return rows;
     } catch (error) {
-      console.error('❌ Error in getWeeklyAttendanceData:', error);
+      console.error("❌ Error in getWeeklyAttendanceData:", error);
       return [];
     }
   }
@@ -627,12 +658,12 @@ class DashboardModel {
         GROUP BY date_series
         ORDER BY date_series
       `;
-      
+
       const { rows } = await pool.query(query);
-      console.log('📊 Monthly attendance data:', rows);
+      console.log("📊 Monthly attendance data:", rows);
       return rows;
     } catch (error) {
-      console.error('❌ Error in getMonthlyAttendanceData:', error);
+      console.error("❌ Error in getMonthlyAttendanceData:", error);
       return [];
     }
   }
@@ -654,9 +685,16 @@ class DashboardModel {
         ORDER BY date DESC
       `;
       const allComplaints = await pool.query(debugAllQuery);
-      console.log('🔍 DEBUG: All supervisor complaints in database:', allComplaints.rows.length, 'total');
-      console.log('🔍 DEBUG: Sample complaints:', allComplaints.rows.slice(0, 5));
-      
+      console.log(
+        "🔍 DEBUG: All supervisor complaints in database:",
+        allComplaints.rows.length,
+        "total"
+      );
+      console.log(
+        "🔍 DEBUG: Sample complaints:",
+        allComplaints.rows.slice(0, 5)
+      );
+
       // Debug: Show complaints for current week
       const debugWeekQuery = `
         SELECT 
@@ -674,9 +712,16 @@ class DashboardModel {
         ORDER BY date
       `;
       const weekComplaints = await pool.query(debugWeekQuery);
-      console.log('🔍 DEBUG: Supervisor complaints this week:', weekComplaints.rows.length, 'total');
-      console.log('🔍 DEBUG: This week complaints details:', weekComplaints.rows);
-      
+      console.log(
+        "🔍 DEBUG: Supervisor complaints this week:",
+        weekComplaints.rows.length,
+        "total"
+      );
+      console.log(
+        "🔍 DEBUG: This week complaints details:",
+        weekComplaints.rows
+      );
+
       // Main aggregation query
       const query = `
         SELECT 
@@ -697,17 +742,23 @@ class DashboardModel {
         GROUP BY date_series, day_num
         ORDER BY day_num
       `;
-      
+
       const { rows } = await pool.query(query);
-      console.log('📊 Weekly complaints aggregated by day:', JSON.stringify(rows, null, 2));
-      
-      const totalFromAgg = rows.reduce((sum, row) => sum + parseInt(row.complaint_count || 0), 0);
-      console.log('📊 Total from aggregation:', totalFromAgg);
-      
+      console.log(
+        "📊 Weekly complaints aggregated by day:",
+        JSON.stringify(rows, null, 2)
+      );
+
+      const totalFromAgg = rows.reduce(
+        (sum, row) => sum + parseInt(row.complaint_count || 0),
+        0
+      );
+      console.log("📊 Total from aggregation:", totalFromAgg);
+
       return rows;
     } catch (error) {
-      console.error('❌ Error in getWeeklyComplaintsData:', error);
-      console.error('Error details:', error.stack);
+      console.error("❌ Error in getWeeklyComplaintsData:", error);
+      console.error("Error details:", error.stack);
       return [];
     }
   }
@@ -735,16 +786,23 @@ class DashboardModel {
         GROUP BY date_series
         ORDER BY date_series
       `;
-      
+
       const { rows } = await pool.query(query);
-      console.log('📊 Monthly supervisor complaints data:', rows.length, 'days');
-      
-      const totalFromAgg = rows.reduce((sum, row) => sum + parseInt(row.complaint_count || 0), 0);
-      console.log('📊 Total complaints this month:', totalFromAgg);
-      
+      console.log(
+        "📊 Monthly supervisor complaints data:",
+        rows.length,
+        "days"
+      );
+
+      const totalFromAgg = rows.reduce(
+        (sum, row) => sum + parseInt(row.complaint_count || 0),
+        0
+      );
+      console.log("📊 Total complaints this month:", totalFromAgg);
+
       return rows;
     } catch (error) {
-      console.error('❌ Error in getMonthlyComplaintsData:', error);
+      console.error("❌ Error in getMonthlyComplaintsData:", error);
       return [];
     }
   }
@@ -752,28 +810,250 @@ class DashboardModel {
   /**
    * Get chart data based on period
    */
-  async getChartData(period = 'week') {
+  async getChartData(period = "week") {
     try {
       console.log(`📊 Fetching chart data for period: ${period}`);
-      
+
       const [revenueData, attendanceData, complaintsData] = await Promise.all([
-        period === 'week' ? this.getWeeklyRevenueData() : this.getMonthlyRevenueData(),
-        period === 'week' ? this.getWeeklyAttendanceData() : this.getMonthlyAttendanceData(),
-        period === 'week' ? this.getWeeklyComplaintsData() : this.getMonthlyComplaintsData()
+        period === "week"
+          ? this.getWeeklyRevenueData()
+          : this.getMonthlyRevenueData(),
+        period === "week"
+          ? this.getWeeklyAttendanceData()
+          : this.getMonthlyAttendanceData(),
+        period === "week"
+          ? this.getWeeklyComplaintsData()
+          : this.getMonthlyComplaintsData(),
       ]);
 
       return {
         revenue: revenueData,
         attendance: attendanceData,
-        complaints: complaintsData
+        complaints: complaintsData,
       };
     } catch (error) {
-      console.error('❌ Error in getChartData:', error);
+      console.error("❌ Error in getChartData:", error);
       return {
         revenue: [],
         attendance: [],
-        complaints: []
+        complaints: [],
       };
+    }
+  }
+
+  /**
+   * Get all payment details from payments table
+   */
+  async getAllPayments() {
+    try {
+      const query = `
+        SELECT
+          p.id as payment_id,
+          p.child_id,
+          p.parent_email,
+          p.amount,
+          p.currency,
+          p.status,
+          p.created_at,
+          p.paid_at,
+          p.order_id,
+          u.name as parent_name,
+          c.name as child_name
+        FROM payments p
+        LEFT JOIN "user" u ON p.parent_email = u.email
+        LEFT JOIN child c ON p.child_id = c.child_id
+        ORDER BY p.created_at DESC
+      `;
+      const { rows } = await pool.query(query);
+      console.log(
+        "💳 All payments query result:",
+        rows.length,
+        "payments found"
+      );
+      return rows;
+    } catch (error) {
+      console.error("❌ Error in getAllPayments:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Get payment details for a specific child
+   */
+  async getPaymentsByChildId(childId) {
+    try {
+      const query = `
+        SELECT
+          p.id as payment_id,
+          p.child_id,
+          p.parent_email,
+          p.amount,
+          p.currency,
+          p.status,
+          p.created_at,
+          p.paid_at,
+          p.order_id,
+          u.name as parent_name,
+          c.name as child_name
+        FROM payments p
+        LEFT JOIN "user" u ON p.parent_email = u.email
+        LEFT JOIN child c ON p.child_id = c.child_id
+        WHERE p.child_id = $1
+        ORDER BY p.created_at DESC
+      `;
+      const { rows } = await pool.query(query, [childId]);
+      console.log(
+        `💳 Payments for child ${childId}:`,
+        rows.length,
+        "payments found"
+      );
+      return rows;
+    } catch (error) {
+      console.error(`❌ Error in getPaymentsByChildId(${childId}):`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Get payment details for a specific parent email
+   */
+  async getPaymentsByParentEmail(parentEmail) {
+    try {
+      const query = `
+        SELECT
+          p.id as payment_id,
+          p.child_id,
+          p.parent_email,
+          p.amount,
+          p.currency,
+          p.status,
+          p.created_at,
+          p.paid_at,
+          p.order_id,
+          u.name as parent_name,
+          c.name as child_name
+        FROM payments p
+        LEFT JOIN "user" u ON p.parent_email = u.email
+        LEFT JOIN child c ON p.child_id = c.child_id
+        WHERE p.parent_email = $1
+        ORDER BY p.created_at DESC
+      `;
+      const { rows } = await pool.query(query, [parentEmail]);
+      console.log(
+        `💳 Payments for parent ${parentEmail}:`,
+        rows.length,
+        "payments found"
+      );
+      return rows;
+    } catch (error) {
+      console.error(
+        `❌ Error in getPaymentsByParentEmail(${parentEmail}):`,
+        error
+      );
+      return [];
+    }
+  }
+
+  /**
+   * Get payments by status (e.g., 'completed', 'pending', 'failed')
+   */
+  async getPaymentsByStatus(status) {
+    try {
+      const query = `
+        SELECT
+          p.id as payment_id,
+          p.child_id,
+          p.parent_email,
+          p.amount,
+          p.currency,
+          p.status,
+          p.created_at,
+          p.paid_at,
+          p.order_id,
+          u.name as parent_name,
+          c.name as child_name
+        FROM payments p
+        LEFT JOIN "user" u ON p.parent_email = u.email
+        LEFT JOIN child c ON p.child_id = c.child_id
+        WHERE LOWER(TRIM(p.status)) = LOWER($1)
+        ORDER BY p.created_at DESC
+      `;
+      const { rows } = await pool.query(query, [status]);
+      console.log(
+        `💳 Payments with status '${status}':`,
+        rows.length,
+        "payments found"
+      );
+      return rows;
+    } catch (error) {
+      console.error(`❌ Error in getPaymentsByStatus(${status}):`, error);
+      return [];
+    }
+  }
+
+  /**
+   * Get payment summary statistics
+   */
+  async getPaymentSummary() {
+    try {
+      const query = `
+        SELECT
+          COUNT(*) as total_payments,
+          COUNT(CASE WHEN LOWER(TRIM(p.status)) = 'completed' OR p.paid_at IS NOT NULL THEN 1 END) as completed_payments,
+          COUNT(CASE WHEN LOWER(TRIM(p.status)) = 'pending' THEN 1 END) as pending_payments,
+          COUNT(CASE WHEN LOWER(TRIM(p.status)) = 'failed' THEN 1 END) as failed_payments,
+          SUM(CAST(p.amount AS NUMERIC)) as total_revenue,
+          AVG(CAST(p.amount AS NUMERIC)) as average_payment,
+          MIN(CAST(p.amount AS NUMERIC)) as minimum_payment,
+          MAX(CAST(p.amount AS NUMERIC)) as maximum_payment,
+          p.currency
+        FROM payments p
+        GROUP BY p.currency
+      `;
+      const { rows } = await pool.query(query);
+      console.log("💳 Payment summary:", rows);
+      return rows;
+    } catch (error) {
+      console.error("❌ Error in getPaymentSummary:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Get payments within a date range
+   */
+  async getPaymentsByDateRange(startDate, endDate) {
+    try {
+      const query = `
+        SELECT
+          p.id as payment_id,
+          p.child_id,
+          p.parent_email,
+          p.amount,
+          p.currency,
+          p.status,
+          p.created_at,
+          p.paid_at,
+          p.order_id,
+          u.name as parent_name,
+          c.name as child_name
+        FROM payments p
+        LEFT JOIN "user" u ON p.parent_email = u.email
+        LEFT JOIN child c ON p.child_id = c.child_id
+        WHERE p.created_at::date >= $1::date
+          AND p.created_at::date <= $2::date
+        ORDER BY p.created_at DESC
+      `;
+      const { rows } = await pool.query(query, [startDate, endDate]);
+      console.log(
+        `💳 Payments between ${startDate} and ${endDate}:`,
+        rows.length,
+        "payments found"
+      );
+      return rows;
+    } catch (error) {
+      console.error(`❌ Error in getPaymentsByDateRange:`, error);
+      return [];
     }
   }
 }
